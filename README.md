@@ -42,7 +42,7 @@ maven { url = uri("https://jitpack.io") }
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.Inforaam:MobShield-Android:mobshield:v1.0.7")
+    implementation("com.github.Inforaam:MobShield-Android:1.0.8")
 }
 ```
 
