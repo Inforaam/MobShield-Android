@@ -32,7 +32,25 @@ Native modules are built with `ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON` and 16 KB
 
 ## Install
 
-Artifacts are published to **Maven Central** under the `io.mobshield` group. Add the personalization plugin, then core plus the detectors you want:
+MobShield is distributed through **JitPack**, built from the tagged releases. Publication to Maven Central (`io.mobshield`) is configured in the build but no release has been published there yet.
+
+### JitPack (single umbrella dependency)
+
+```kotlin
+// settings.gradle.kts -> dependencyResolutionManagement.repositories
+maven { url = uri("https://jitpack.io") }
+
+// build.gradle.kts
+dependencies {
+    implementation("com.github.Inforaam:MobShield-Android:mobshield:v1.0.7")
+}
+```
+
+The umbrella artifact pulls in core and all detect modules transitively.
+
+### Maven Central (not yet available)
+
+These coordinates will resolve once a release is published to Maven Central. They do not resolve today. The `io.mobshield.personalize` Gradle plugin is distributed the same way, so it is not available yet either.
 
 ```kotlin
 plugins {
@@ -50,20 +68,6 @@ dependencies {
     implementation("io.mobshield:mobshield-detect-integrity:$mobshield")
 }
 ```
-
-### JitPack (single umbrella dependency)
-
-```kotlin
-// settings.gradle.kts -> dependencyResolutionManagement.repositories
-maven { url = uri("https://jitpack.io") }
-
-// build.gradle.kts
-dependencies {
-    implementation("com.github.Inforaam:MobShield-Android:mobshield:v1.0.7")
-}
-```
-
-The umbrella artifact pulls in core and all detect modules transitively.
 
 ## Quick start
 
@@ -136,7 +140,7 @@ See [mobshield-sample-app/README.md](mobshield-sample-app/README.md) for a walkt
 
 ## Release
 
-Publishing a `v*.*.*` tag builds and signs the artifacts and publishes them to Maven Central. Publishing requires these repository secrets: `SONATYPE_USERNAME`, `SONATYPE_PASSWORD`, `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE`.
+Pushing a `v*.*.*` tag makes that release installable through JitPack. The build is also configured to sign and publish to Maven Central through the Sonatype Central Portal, which requires these repository secrets (no release has been published there yet): `SONATYPE_USERNAME`, `SONATYPE_PASSWORD`, `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE`.
 
 Local verification:
 
