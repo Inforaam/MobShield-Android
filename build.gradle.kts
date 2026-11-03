@@ -56,7 +56,7 @@ subprojects {
 
 // JitPack: set ORG_GRADLE_PROJECT_GROUP in jitpack.yml to com.github.<user>.<repo>
 // so transitive module coordinates resolve from the same JitPack publication.
-val mobshieldGroup: String = findProperty("GROUP") as String? ?: "io.mobshield"
+val mobshieldGroup: String = findProperty("GROUP") as String? ?: "io.github.inforaam"
 val mobshieldVersion: String =
     // Prefer explicit Gradle property (used by Maven Central CI).
     findProperty("VERSION_NAME") as String?
@@ -85,7 +85,7 @@ subprojects {
             name.set("MobShield $artifactId")
             description.set("MobShield mobile RASP library: $artifactId")
             inceptionYear.set("2025")
-            url.set("https://github.com/mobshield/mobshield")
+            url.set("https://github.com/Inforaam/MobShield-Android")
             licenses {
                 license {
                     name.set("Apache License, Version 2.0")
@@ -94,25 +94,26 @@ subprojects {
                 }
                 license {
                     name.set("Business Source License 1.1")
-                    url.set("https://github.com/mobshield/mobshield/blob/main/mobshield-android/LICENSE-BSL")
+                    url.set("https://github.com/Inforaam/MobShield-Android/blob/main/LICENSE-BSL")
                     distribution.set("repo")
                 }
             }
             developers {
                 developer {
-                    id.set("mobshield")
+                    id.set("inforaam")
                     name.set("MobShield Contributors")
-                    email.set("security@mobshield.dev")
+                    url.set("https://github.com/Inforaam")
                 }
             }
             scm {
-                connection.set("scm:git:git://github.com/mobshield/mobshield.git")
-                developerConnection.set("scm:git:ssh://git@github.com/mobshield/mobshield.git")
-                url.set("https://github.com/mobshield/mobshield/tree/main")
+                connection.set("scm:git:git://github.com/Inforaam/MobShield-Android.git")
+                developerConnection.set("scm:git:ssh://git@github.com/Inforaam/MobShield-Android.git")
+                url.set("https://github.com/Inforaam/MobShield-Android/tree/main")
             }
         }
 
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+        // Deployments wait in the Central Portal for a manual "Publish" until a first release has been checked.
+        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
         if (hasSigningCredentials()) {
             signAllPublications()
         }

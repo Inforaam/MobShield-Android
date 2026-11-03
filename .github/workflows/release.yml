@@ -1,0 +1,73 @@
+name: Release to Maven Central
+
+# Pushing a v*.*.* tag stages the library modules in the Sonatype Central Portal.
+# Because automaticRelease is false, the deployment is published by hand from
+# https://central.sonatype.com/publishing/deployments after it has been checked.
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish, without the leading v (for example 1.0.9)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Add required reviewers to this environment (Settings > Environments) to
+    # gate every release behind an approval.
+    environment: maven-central
+    env:
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Resolve version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
+          echo "Publishing $VERSION"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Unit tests
+        run: ./gradlew test --stacktrace
+
+      # The Gradle plugin and the fat umbrella AAR are not published here: the
+      # plugin's marker artifact needs the io.mobshield.personalize group, which
+      # is outside the verified io.github.inforaam namespace.
+      - name: Publish library modules
+        run: >
+          ./gradlew
+          :mobshield-core:publishToMavenCentral
+          :mobshield-detect-root:publishToMavenCentral
+          :mobshield-detect-hooks:publishToMavenCentral
+          :mobshield-detect-debugger:publishToMavenCentral
+          :mobshield-detect-environment:publishToMavenCentral
+          :mobshield-detect-integrity:publishToMavenCentral
+          -PVERSION_NAME="$VERSION_NAME"
+          --no-configuration-cache --stacktrace
