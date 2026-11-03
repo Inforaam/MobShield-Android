@@ -2,7 +2,7 @@ jdk:
   - openjdk17
 # Set to com.github.<your-github-user>.<your-repo-name> (case-sensitive).
 env:
-  ORG_GRADLE_PROJECT_GROUP: com.github.inforaamitsolutions.MobShield-Android
+  ORG_GRADLE_PROJECT_GROUP: com.github.Inforaam.MobShield-Android
   JITPACK: "true"
 install:
   - ./gradlew jitpackPublish -PVERSION_NAME=$VERSION -x test --stacktrace

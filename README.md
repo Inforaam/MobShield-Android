@@ -2,7 +2,7 @@
 
 Open-source mobile app hardening for Android: modular RASP detectors, signal aggregation, and per-build native personalization.
 
-[![Android CI](https://github.com/inforaamitsolutions/MobShield-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/inforaamitsolutions/MobShield-Android/actions/workflows/android-ci.yml)
+[![Android CI](https://github.com/Inforaam/MobShield-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Inforaam/MobShield-Android/actions/workflows/android-ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![minSdk: 24](https://img.shields.io/badge/minSdk-24-lightgrey.svg)
 
@@ -59,7 +59,7 @@ maven { url = uri("https://jitpack.io") }
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.inforaamitsolutions:MobShield-Android:mobshield:v1.0.7")
+    implementation("com.github.Inforaam:MobShield-Android:mobshield:v1.0.7")
 }
 ```
 
