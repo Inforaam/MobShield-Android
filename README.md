@@ -8,6 +8,21 @@ Open-source mobile app hardening for Android: modular RASP detectors, signal agg
 
 MobShield runs a set of detection modules, aggregates their weighted signals into `ThreatEvent`s, and reports your app's runtime posture through a listener — so your app can react to root, hooking, debugging, emulator, and integrity-tampering conditions.
 
+## Why MobShield
+
+- **Signals, not a verdict.** Each check emits a weighted, confidence-scored `Signal`. A pure aggregator turns them into a `ThreatEvent` per threat type (root, hooks, debugger, emulator, integrity), so you decide what a score means for your app instead of getting an opaque pass/fail.
+- **Modular.** Take only the detectors you need: `mobshield-core` plus any of the root, hooks, debugger, environment and integrity modules.
+- **Detect-only by default.** MobShield reports; it never kills your process unless you opt in with a `TerminationPolicy`.
+- **No account, no telemetry.** There is no backend and no outbound network calls; the only socket use is the Frida check, which probes `127.0.0.1` on the device. Reports stay in your app; send them to your own server if you want them (see `MobShield.currentSignedReport`).
+- **Modern-root aware.** Checks target Magisk, Zygisk, Shamiko and KernelSU artifacts, and Frida and LSPosed instrumentation, not just a `su` file lookup.
+- **Auditable.** Every signal, its technique and its default weight is documented in [docs/detection](docs/detection), with a clean-vs-compromised [validation matrix](docs/validation.md). Coverage is mapped to OWASP MASVS in [docs/masvs-mapping.md](docs/masvs-mapping.md).
+
+### When to use it (and when not to)
+
+- **Use it** for client-side posture signals you can act on or forward to your backend: warn, restrict a feature, step up authentication, or flag a session.
+- **Pair it with server-side checks.** Client-side detection can be bypassed by a determined attacker with control of the device. Treat MobShield as one layer of defense in depth, and verify anything that matters on your server (for example with [Play Integrity](https://developer.android.com/google/play/integrity) attestation). It does not replace it.
+- **Native detectors are best-effort.** Several checks read `/proc` and probe the runtime, which is the same ground an attacker's tooling operates on. Expect cat-and-mouse; keep the library updated.
+
 ## Modules
 
 | Module | Purpose |
