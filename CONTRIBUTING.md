@@ -17,8 +17,7 @@ Thank you for your interest in MobShield. This project spans `mobshield-android`
 
 ## Licensing
 
-- Kotlin, Swift, Gradle, and podspec files: **Apache 2.0**.
-- Native C/C++ core: **BSL 1.1** until the Change Date, then Apache 2.0. See `LICENSE-BSL`.
+All source files, including the native C/C++ code, are licensed under **Apache 2.0**. See `LICENSE`.
 
 ## Code of conduct
 
