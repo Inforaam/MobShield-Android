@@ -61,7 +61,7 @@ MobShield raises the cost of an attack. Like any client-side protection, it can'
 | Signature / repackaging integrity | ✅ | ✅ | ❌ |
 | Backend-verifiable report | ✅ Signed report, your own key | AppiCrypt (commercial plan) | ❌ |
 | Per-build personalization | ✅ | ❌ | ❌ |
-| Platforms | Android + [iOS](https://github.com/inforaamitsolutions/MobShield-iOS) | Android, iOS, Flutter, RN, Cordova, Capacitor | Android |
+| Platforms | Android + [iOS](https://github.com/Inforaam/MobShield-iOS) | Android, iOS, Flutter, RN, Cordova, Capacitor | Android |
 
 freeRASP is ahead on cross-platform framework support and a few extra checks, such as installation source and screen capture. If you need those today, it's a good choice. *Comparison based on each project's public README as of October 2026. Corrections are welcome via PR.*
 
