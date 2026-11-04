@@ -84,7 +84,24 @@ Native modules are built with `ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON` and 16 KB
 
 ## Install
 
-MobShield is distributed through **JitPack**, built from the tagged releases. Per-module artifacts are set up for Maven Central under the `io.github.inforaam` group, but no release has been published there yet.
+### Maven Central (recommended)
+
+MobShield is published to Maven Central under the `io.github.inforaam` group. Add `mobshield-core`, plus only the detectors you need:
+
+```kotlin
+dependencies {
+    val mobshield = "1.0.9"
+    implementation("io.github.inforaam:mobshield-core:$mobshield")
+    // optional detectors:
+    implementation("io.github.inforaam:mobshield-detect-root:$mobshield")
+    implementation("io.github.inforaam:mobshield-detect-hooks:$mobshield")
+    implementation("io.github.inforaam:mobshield-detect-debugger:$mobshield")
+    implementation("io.github.inforaam:mobshield-detect-environment:$mobshield")
+    implementation("io.github.inforaam:mobshield-detect-integrity:$mobshield")
+}
+```
+
+The `io.mobshield.personalize` Gradle plugin is not part of the Maven Central release, because its plugin id sits outside the `io.github.inforaam` namespace.
 
 ### JitPack (single umbrella dependency)
 
@@ -98,24 +115,7 @@ dependencies {
 }
 ```
 
-The umbrella artifact is a single AAR that bundles core and all five detect modules. It cannot be trimmed to individual modules; use the Maven Central artifacts below for that once they are published.
-
-### Maven Central (not yet available)
-
-These coordinates will resolve once a release is published to Maven Central. They do not resolve today. The `io.mobshield.personalize` Gradle plugin is not part of the Maven Central release, because its plugin id sits outside the `io.github.inforaam` namespace.
-
-```kotlin
-dependencies {
-    val mobshield = "<version>" // the first Maven Central release
-    implementation("io.github.inforaam:mobshield-core:$mobshield")
-    // optional detectors:
-    implementation("io.github.inforaam:mobshield-detect-root:$mobshield")
-    implementation("io.github.inforaam:mobshield-detect-hooks:$mobshield")
-    implementation("io.github.inforaam:mobshield-detect-debugger:$mobshield")
-    implementation("io.github.inforaam:mobshield-detect-environment:$mobshield")
-    implementation("io.github.inforaam:mobshield-detect-integrity:$mobshield")
-}
-```
+JitPack builds from git tags, so it offers the tagged releases (latest: 1.0.8). The umbrella artifact is a single AAR that bundles core and all five detect modules, and it cannot be trimmed to individual modules; use Maven Central for that.
 
 ## Quick start
 
@@ -188,7 +188,7 @@ See [mobshield-sample-app/README.md](mobshield-sample-app/README.md) for a walkt
 
 ## Release
 
-Pushing a `v*.*.*` tag makes that release installable through JitPack, and runs [`release.yml`](.github/workflows/release.yml), which stages the six library modules in the Sonatype Central Portal. The deployment is published by hand from the portal after it has been checked. The workflow needs the `maven-central` environment and these repository secrets: `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD` (a Central Portal user token), `SIGNING_KEY` (ASCII-armored GPG private key), `SIGNING_KEY_ID` and `SIGNING_KEY_PASSWORD`. No release has been published to Maven Central yet.
+Pushing a `v*.*.*` tag makes that release installable through JitPack, and runs [`release.yml`](.github/workflows/release.yml), which stages the six library modules in the Sonatype Central Portal. The deployment is published by hand from the portal after it has been checked. The workflow needs the `maven-central` environment and these repository secrets: `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD` (a Central Portal user token), `SIGNING_KEY` (ASCII-armored GPG private key), `SIGNING_KEY_ID` and `SIGNING_KEY_PASSWORD`.
 
 Local verification:
 
