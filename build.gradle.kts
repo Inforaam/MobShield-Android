@@ -92,11 +92,6 @@ subprojects {
                     url.set("https://www.apache.org/licenses/LICENSE-2.0")
                     distribution.set("repo")
                 }
-                license {
-                    name.set("Business Source License 1.1")
-                    url.set("https://github.com/Inforaam/MobShield-Android/blob/main/LICENSE-BSL")
-                    distribution.set("repo")
-                }
             }
             developers {
                 developer {

@@ -36,7 +36,7 @@ MobShield raises the cost of an attack. Like any client-side protection, it can'
 
 | | MobShield | [freeRASP](https://github.com/talsec/Free-RASP-Android) | [RootBeer](https://github.com/scottyab/rootbeer) |
 |---|---|---|---|
-| License | Apache-2.0 (Kotlin); native core BSL | MIT wrapper + proprietary binary core, fair-usage policy | Apache-2.0 |
+| License | Apache-2.0 | MIT wrapper + proprietary binary core, fair-usage policy | Apache-2.0 |
 | Detection logic auditable | ✅ | ❌ (closed binary) | ✅ |
 | Sends data to a vendor | ❌ No network calls | Incident data feeds Talsec's weekly Security Report | ❌ |
 | Root (Magisk, Zygisk, Shamiko, KernelSU) | ✅ | ✅ | Basic (su binary, root/cloak apps, props) |
@@ -183,5 +183,4 @@ Local verification:
 
 ## License
 
-- Kotlin and Gradle sources: [Apache-2.0](LICENSE)
-- Native core (when implemented): [LICENSE-BSL](LICENSE-BSL), Change Date 2028-05-25
+All of MobShield Android (Kotlin, Gradle and native C/C++ sources) is licensed under [Apache-2.0](LICENSE).
