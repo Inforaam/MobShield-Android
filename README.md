@@ -3,6 +3,7 @@
 Open-source mobile app hardening for Android: modular RASP detectors, signal aggregation, and per-build native personalization.
 
 [![Android CI](https://github.com/Inforaam/MobShield-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Inforaam/MobShield-Android/actions/workflows/android-ci.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.inforaam/mobshield-core)](https://central.sonatype.com/artifact/io.github.inforaam/mobshield-core)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![minSdk: 24](https://img.shields.io/badge/minSdk-24-lightgrey.svg)
 
@@ -90,7 +91,7 @@ MobShield is published to Maven Central under the `io.github.inforaam` group. Ad
 
 ```kotlin
 dependencies {
-    val mobshield = "1.0.9"
+    val mobshield = "1.0.10"
     implementation("io.github.inforaam:mobshield-core:$mobshield")
     // optional detectors:
     implementation("io.github.inforaam:mobshield-detect-root:$mobshield")
