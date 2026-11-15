@@ -186,6 +186,7 @@ See [mobshield-sample-app/README.md](mobshield-sample-app/README.md) for a walkt
 
 - [Detection validation matrix](docs/validation.md) — every signal each module emits and the clean vs compromised baselines.
 - [Detection notes](docs/detection) — per-detector background.
+- [Scoring model](docs/scoring.md) — how signals become scores and severities, correlation groups, what one signal can do alone, and the limits of the default weights.
 
 ## Release
 

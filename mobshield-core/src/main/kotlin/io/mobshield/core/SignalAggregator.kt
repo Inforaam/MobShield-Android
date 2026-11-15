@@ -18,8 +18,15 @@ package io.mobshield.core
 /**
  * Stateless pure aggregator: maps weighted [Signal] values to [ThreatEvent] list.
  *
- * Score formula per threat type T:
- * `score(T) = min(100, sum(weight * confidence / 100))` for signals mapped to T.
+ * Score per threat type T, over the signals mapped to T:
+ * - each signal contributes `weight * confidence / 100` points;
+ * - signals that share a correlation group ([MobShieldConfig.signalGroups]) are combined with
+ *   noisy-OR, `100 * (1 - prod(1 - c / 100))`, so one artifact seen by several checks is not
+ *   counted several times; a group is never below its strongest member nor above their sum;
+ * - groups and ungrouped signals are added, capped at 100, and truncated to an integer.
+ *
+ * Arithmetic is done in integer hundredths of a point so that results are exact and identical on
+ * Android and iOS. See `docs/scoring.md`.
  */
 class SignalAggregator(
     private val config: MobShieldConfig,
@@ -68,13 +75,7 @@ class SignalAggregator(
         return events.sortedByDescending { it.score }
     }
 
-    private fun computeScore(signals: List<Signal>): Int {
-        var total = 0.0
-        for (signal in signals) {
-            total += signal.weight * (signal.confidence / 100.0)
-        }
-        return total.toInt().coerceIn(0, 100)
-    }
+    private fun computeScore(signals: List<Signal>): Int = scoreOf(signals, config.signalGroups)
 
     private fun mapSeverity(
         type: ThreatType,
@@ -116,6 +117,55 @@ class SignalAggregator(
     }
 
     companion object {
+        /** Full scale (100 points) in hundredths of a point. */
+        private const val FULL_SCALE = 10_000L
+        private const val HUNDREDTHS_PER_POINT = 100L
+        private const val MAX_SCORE = 100
+
+        /**
+         * Scores [signals] that already belong to one threat type, using [groups] (signal name to
+         * group id) to combine correlated signals. Exposed for tests and documentation tooling.
+         */
+        fun scoreOf(
+            signals: List<Signal>,
+            groups: Map<String, String>,
+        ): Int {
+            var hundredths = 0L
+            val grouped = LinkedHashMap<String, MutableList<Long>>()
+            for (signal in signals) {
+                val contribution = signal.weight.toLong() * signal.confidence
+                val group = groups[signal.name]
+                if (group == null) {
+                    hundredths += contribution
+                } else {
+                    grouped.getOrPut(group) { mutableListOf() }.add(contribution)
+                }
+            }
+            for (contributions in grouped.values) {
+                hundredths += combineCorrelated(contributions)
+            }
+            return (hundredths / HUNDREDTHS_PER_POINT).toInt().coerceIn(0, MAX_SCORE)
+        }
+
+        /**
+         * Noisy-OR of contributions given in hundredths of a point (0..10 000). The running
+         * complement is rounded up at each step, so the combined value is never overstated, and a
+         * single contribution is returned unchanged.
+         */
+        internal fun combineCorrelated(contributions: List<Long>): Long {
+            var complement = FULL_SCALE
+            for (contribution in contributions.sortedDescending()) {
+                val remaining = FULL_SCALE - contribution.coerceIn(0L, FULL_SCALE)
+                complement = ceilDiv(complement * remaining, FULL_SCALE)
+            }
+            return FULL_SCALE - complement
+        }
+
+        private fun ceilDiv(
+            numerator: Long,
+            denominator: Long,
+        ): Long = (numerator + denominator - 1) / denominator
+
         private val INFORMATIONAL_TYPES =
             setOf(ThreatType.DEVELOPER_MODE, ThreatType.ADB_ENABLED)
 
