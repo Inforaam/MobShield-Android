@@ -75,6 +75,17 @@ class SignalAggregator(
         return events.sortedByDescending { it.score }
     }
 
+    /**
+     * Threat types for which at least one of [signals], scored as the only signal of its type,
+     * reaches [Severity.HIGH]. Termination requires this, so that several weak hints that only add
+     * up to HIGH or CRITICAL report a threat but never end the process. See `docs/termination.md`.
+     */
+    internal fun typesWithStrongSignal(signals: List<Signal>): Set<ThreatType> =
+        signals
+            .filter { signal -> aggregate(listOf(signal)).any { it.severity >= Severity.HIGH } }
+            .mapNotNull { resolveThreatType(it.name) }
+            .toSet()
+
     private fun computeScore(signals: List<Signal>): Int = scoreOf(signals, config.signalGroups)
 
     private fun mapSeverity(

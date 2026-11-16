@@ -25,6 +25,7 @@ import io.mobshield.core.Signal
 import io.mobshield.core.SignalAggregator
 import io.mobshield.core.TerminationPolicy
 import io.mobshield.core.ThreatEvent
+import io.mobshield.core.ThreatType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -69,8 +70,16 @@ internal class MobShieldEngine(
      */
     private suspend fun runScanLoop() {
         while (coroutineContext.isActive) {
-            val events = runScanWave()
-            if (shouldTerminate(events, config.detectOnly, config.terminationPolicy)) {
+            val wave = runScanWave()
+            val terminates =
+                shouldTerminate(
+                    events = wave.events,
+                    detectOnly = config.detectOnly,
+                    policy = config.terminationPolicy,
+                    typesWithStrongSignal = wave.typesWithStrongSignal,
+                    terminateOn = config.terminateOn,
+                )
+            if (terminates) {
                 terminate()
                 return
             }
@@ -90,7 +99,13 @@ internal class MobShieldEngine(
 
     fun getLastEvents(): List<ThreatEvent> = lastEventsRef.get()
 
-    private suspend fun runScanWave(): List<ThreatEvent> {
+    /** One scan wave's events, plus the threat types that have a signal reaching HIGH on its own. */
+    private class ScanWave(
+        val events: List<ThreatEvent>,
+        val typesWithStrongSignal: Set<ThreatType>,
+    )
+
+    private suspend fun runScanWave(): ScanWave {
         val modules = resolveModules()
         val moduleSignals =
             if (modules.isEmpty()) {
@@ -118,7 +133,7 @@ internal class MobShieldEngine(
         listener.onAllChecksFinished(events)
         stateRef.set(buildState(events, running = true))
         lastEventsRef.set(events)
-        return events
+        return ScanWave(events, aggregator.typesWithStrongSignal(signals))
     }
 
     /**
@@ -198,21 +213,28 @@ internal class MobShieldEngine(
          * Decides whether the current scan results warrant process termination.
          *
          * - [TerminationPolicy.NONE] (and any `detectOnly` config): never terminates.
-         * - [TerminationPolicy.EXIT_ON_BYPASS]: terminates when any threat reaches [Severity.HIGH]
-         *   or above — a confirmed compromise of the protected environment.
-         * - [TerminationPolicy.EXIT_ON_CRITICAL]: terminates only when a threat reaches
-         *   [Severity.CRITICAL].
+         * - [TerminationPolicy.EXIT_ON_BYPASS]: an event of severity [Severity.HIGH] or above.
+         * - [TerminationPolicy.EXIT_ON_CRITICAL]: an event of severity [Severity.CRITICAL].
+         *
+         * In both cases the event's type must be in [typesWithStrongSignal] (at least one of its
+         * signals reaches HIGH on its own) and in [terminateOn].
          */
         internal fun shouldTerminate(
             events: List<ThreatEvent>,
             detectOnly: Boolean,
             policy: TerminationPolicy,
+            typesWithStrongSignal: Set<ThreatType>,
+            terminateOn: Set<ThreatType>,
         ): Boolean {
             if (detectOnly) return false
-            return when (policy) {
-                TerminationPolicy.NONE -> false
-                TerminationPolicy.EXIT_ON_BYPASS -> events.any { it.severity >= Severity.HIGH }
-                TerminationPolicy.EXIT_ON_CRITICAL -> events.any { it.severity == Severity.CRITICAL }
+            val minimum =
+                when (policy) {
+                    TerminationPolicy.NONE -> return false
+                    TerminationPolicy.EXIT_ON_BYPASS -> Severity.HIGH
+                    TerminationPolicy.EXIT_ON_CRITICAL -> Severity.CRITICAL
+                }
+            return events.any {
+                it.severity >= minimum && it.type in typesWithStrongSignal && it.type in terminateOn
             }
         }
     }
