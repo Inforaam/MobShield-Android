@@ -22,11 +22,16 @@
 #include <cstring>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 namespace {
 
+constexpr int kConnectTimeoutMs = 100;
+
+// A non-blocking connect() to a listening loopback port normally returns -1 with EINPROGRESS,
+// not 0, and SO_SNDTIMEO does not apply to it. Wait for writability and read SO_ERROR instead.
 bool probe_port(uint16_t port) {
     const int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
@@ -34,25 +39,35 @@ bool probe_port(uint16_t port) {
     }
 
     const int flags = fcntl(fd, F_GETFL, 0);
-    if (flags >= 0) {
-        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    if (flags < 0 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        close(fd);
+        return false;
     }
-
-    struct timeval timeout {};
-    timeout.tv_usec = 100000;  // 100ms
-    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
     sockaddr_in address {};
     address.sin_family = AF_INET;
     address.sin_port = htons(port);
     address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    const int result = connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
-    const int err = errno;
+    bool open = false;
+    if (connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0) {
+        open = true;
+    } else if (errno == EINPROGRESS) {
+        pollfd pfd {};
+        pfd.fd = fd;
+        pfd.events = POLLOUT;
+        int ready;
+        do {
+            ready = poll(&pfd, 1, kConnectTimeoutMs);
+        } while (ready < 0 && errno == EINTR);
+        if (ready > 0) {
+            int so_error = 0;
+            socklen_t len = sizeof(so_error);
+            open = getsockopt(fd, SOL_SOCKET, SO_ERROR, &so_error, &len) == 0 && so_error == 0;
+        }
+    }
     close(fd);
-
-    return result == 0 || err == EISCONN;
+    return open;
 }
 
 }  // namespace
