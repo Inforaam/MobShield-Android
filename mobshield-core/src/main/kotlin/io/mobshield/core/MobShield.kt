@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 /** Public entry point for MobShield on Android. */
 object MobShield {
-    const val SIGNAL_SET_VERSION = "signals-2026.05.0"
+    const val SIGNAL_SET_VERSION = "signals-2026.11.0"
 
     private val engineRef = AtomicReference<MobShieldEngine?>(null)
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

@@ -29,6 +29,9 @@ package io.mobshield.core
  * @param allowedInstallSources Package installer IDs treated as official (Play Store, etc.).
  * @param expectedApkSha256 Optional whole-APK SHA-256 hex for [PackageManager.requestChecksums].
  * @param expectedNativeLibSha256 Optional on-disk SHA-256 hex for `libmobshieldcore.so`.
+ * @param signalGroups Correlation groups keyed by signal name; signals in one group are combined
+ *   with diminishing returns instead of added. Defaults to [DefaultSignalGroups.map]; pass an empty
+ *   map to add every signal independently, as releases up to 1.0.10 did.
  */
 data class MobShieldConfig(
     val detectOnly: Boolean = true,
@@ -42,6 +45,7 @@ data class MobShieldConfig(
     val allowedInstallSources: Set<String> = DEFAULT_ALLOWED_INSTALL_SOURCES,
     val expectedApkSha256: String? = null,
     val expectedNativeLibSha256: String? = null,
+    val signalGroups: Map<String, String> = DefaultSignalGroups.map,
 ) {
     init {
         validateSigners(expectedSigners)
@@ -72,6 +76,7 @@ data class MobShieldConfig(
         private var allowedInstallSources: Set<String> = DEFAULT_ALLOWED_INSTALL_SOURCES
         private var expectedApkSha256: String? = null
         private var expectedNativeLibSha256: String? = null
+        private var signalGroups: Map<String, String> = DefaultSignalGroups.map
 
         fun detectOnly(value: Boolean) = apply { detectOnly = value }
 
@@ -95,6 +100,8 @@ data class MobShieldConfig(
 
         fun expectedNativeLibSha256(value: String?) = apply { expectedNativeLibSha256 = value }
 
+        fun signalGroups(value: Map<String, String>) = apply { signalGroups = value }
+
         fun build(): MobShieldConfig =
             MobShieldConfig(
                 detectOnly = detectOnly,
@@ -108,6 +115,7 @@ data class MobShieldConfig(
                 allowedInstallSources = allowedInstallSources,
                 expectedApkSha256 = expectedApkSha256,
                 expectedNativeLibSha256 = expectedNativeLibSha256,
+                signalGroups = signalGroups,
             )
     }
 

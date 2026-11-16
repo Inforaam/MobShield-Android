@@ -177,7 +177,7 @@ internal class MobShieldEngine(
         )
 
     companion object {
-        const val SIGNAL_SET_VERSION = "signals-2026.05.0"
+        const val SIGNAL_SET_VERSION = "signals-2026.11.0"
 
         private const val MILLIS_PER_SECOND = 1000L
 
