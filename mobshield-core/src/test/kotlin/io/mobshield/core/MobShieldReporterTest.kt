@@ -22,6 +22,8 @@ import org.junit.Test
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
+// The HMAC tests cover the deprecated sign() until it is removed.
+@Suppress("DEPRECATION")
 class MobShieldReporterTest {
     private val key = "test-shared-secret".toByteArray()
 
@@ -60,9 +62,11 @@ class MobShieldReporterTest {
         val a = MobShieldReporter.canonicalJson(report)
         val b = MobShieldReporter.canonicalJson(report)
         assertEquals(a, b)
-        assertTrue(a.contains("\"schemaVersion\":\"report-1\""))
+        assertTrue(a.contains("\"schemaVersion\":\"report-2\""))
         // buildId key precedes riskLevel key (alphabetical order).
         assertTrue(a.indexOf("\"buildId\"") < a.indexOf("\"riskLevel\""))
+        // No challenge was given, so the key is left out rather than written as null.
+        assertTrue(!a.contains("challenge"))
     }
 
     @Test

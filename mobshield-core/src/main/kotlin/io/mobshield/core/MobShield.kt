@@ -84,11 +84,43 @@ object MobShield {
         MobShieldReporter.makeReport(getState(), getLastEvents(), getBuildId(), schemaVersion)
 
     /**
-     * The current report as canonical JSON plus an HMAC-SHA256 signature under [key]. Transmit both
-     * to your backend; the backend recomputes the HMAC over the received JSON to verify the report
-     * was produced by a build holding the shared key and was not altered in transit.
+     * The current report, answering [challenge], for binding to a Play Integrity verdict: send
+     * `MobShieldReporter.canonicalJson(report)` to your backend and pass
+     * `MobShieldReporter.requestHash(json)` as the integrity request's `requestHash`.
      */
     @JvmStatic
+    fun currentReport(challenge: ByteArray): ThreatReport =
+        MobShieldReporter.makeReport(getState(), getLastEvents(), getBuildId(), challenge = challenge)
+
+    /**
+     * The current report, answering the server-issued [challenge], signed by a new hardware-backed
+     * key whose Key Attestation chain is bound to the same challenge. Send the result to your backend
+     * and verify it there as described in `docs/report-attestation.md`.
+     *
+     * Blocks while the Keystore creates the key, which can take seconds: call it off the main thread.
+     *
+     * @throws ReportAttestationException if the device cannot create or use an attested key.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun currentAttestedReport(
+        challenge: ByteArray,
+        attester: ReportAttester = AndroidKeystoreReportAttester(),
+    ): AttestedThreatReport = MobShieldReporter.attest(currentReport(challenge), challenge, attester)
+
+    /**
+     * The current report as canonical JSON plus an HMAC-SHA256 signature under [key].
+     *
+     * The key ships inside the app, so anyone who can read or hook the app can sign a clean report
+     * with it, and the report can be replayed. Use [currentAttestedReport] instead.
+     */
+    @Deprecated(
+        "An HMAC key shipped in the app cannot prove where a report came from. " +
+            "Use currentAttestedReport(challenge); see docs/report-attestation.md.",
+        ReplaceWith("currentAttestedReport(challenge)"),
+    )
+    @JvmStatic
+    @Suppress("DEPRECATION")
     fun currentSignedReport(key: ByteArray): SignedThreatReport = MobShieldReporter.sign(currentReport(), key)
 
     /** Native and API version string. */
