@@ -14,7 +14,7 @@ MobShield runs a set of detection modules, aggregates their weighted signals int
 - **Signals, not a verdict.** Each check emits a weighted, confidence-scored `Signal`. A pure aggregator turns them into a `ThreatEvent` per threat type (root, hooks, debugger, emulator, integrity), so you decide what a score means for your app instead of getting an opaque pass/fail.
 - **Modular.** Take only the detectors you need: `mobshield-core` plus any of the root, hooks, debugger, environment and integrity modules.
 - **Detect-only by default.** MobShield reports; it never kills your process unless you opt in with a `TerminationPolicy`.
-- **No account, no telemetry.** There is no backend and no outbound network calls; the only socket use is the Frida check, which probes `127.0.0.1` on the device. Reports stay in your app; send them to your own server if you want them (see `MobShield.currentSignedReport`).
+- **No account, no telemetry.** There is no backend and no outbound network calls; the only socket use is the Frida check, which probes `127.0.0.1` on the device. Reports stay in your app; send them to your own server if you want them (see [docs/report-attestation.md](docs/report-attestation.md)).
 - **Modern-root aware.** Checks target Magisk, Zygisk, Shamiko and KernelSU artifacts, and Frida and LSPosed instrumentation, not just a `su` file lookup.
 - **Auditable.** Every signal, its technique and its default weight is documented in [docs/detection](docs/detection), with a clean-vs-compromised [validation matrix](docs/validation.md). Coverage is mapped to OWASP MASVS in [docs/masvs-mapping.md](docs/masvs-mapping.md).
 
@@ -44,7 +44,7 @@ MobShield runs a set of detection modules, aggregates their weighted signals int
 - **Modular.** Add only the detectors you need.
 - **Safe to roll out.** It's detect-only by default and never kills your process unless you opt in.
 - **Harder to bypass generically.** The Gradle plugin personalizes each build, so one off-the-shelf bypass script doesn't fit every app.
-- **Server-verifiable.** Signed posture reports let your backend decide whether to trust a session.
+- **Server-verifiable.** Posture reports answer a challenge from your server and are signed by a hardware-attested key (or bound to a Play Integrity verdict), so your backend can check where a report came from and that it is fresh.
 
 MobShield raises the cost of an attack. Like any client-side protection, it can't make an app unbreakable, so pair it with server-side checks.
 
@@ -60,7 +60,7 @@ MobShield raises the cost of an attack. Like any client-side protection, it can'
 | Debugger | ✅ | ✅ | ❌ |
 | Emulator / automation / ADB | ✅ | ✅ | ❌ |
 | Signature / repackaging integrity | ✅ | ✅ | ❌ |
-| Backend-verifiable report | ✅ Signed report, your own key | AppiCrypt (commercial plan) | ❌ |
+| Backend-verifiable report | ✅ Key Attestation or Play Integrity, your own server | AppiCrypt (commercial plan) | ❌ |
 | Per-build personalization | ✅ | ❌ | ❌ |
 | Platforms | Android + [iOS](https://github.com/Inforaam/MobShield-iOS) | Android, iOS, Flutter, RN, Cordova, Capacitor | Android |
 
@@ -175,7 +175,10 @@ Before turning termination on, read [docs/termination.md](docs/termination.md): 
 signal that is strong on its own, `terminateOn` limits which threat types can end the process, and a
 hooked app can block the exit call, so termination is a deterrent rather than a security boundary.
 
-For a signed posture report you can verify on your backend, see `MobShield.currentSignedReport(key)`.
+For a posture report your backend can verify, see [docs/report-attestation.md](docs/report-attestation.md):
+`MobShield.currentAttestedReport(challenge)` answers a challenge from your server with a report signed
+by a hardware-attested key. The HMAC-signed `currentSignedReport(key)` is deprecated, because its key
+ships in the app.
 
 ## Build
 
@@ -192,6 +195,7 @@ See [mobshield-sample-app/README.md](mobshield-sample-app/README.md) for a walkt
 - [Detection notes](docs/detection) — per-detector background.
 - [Scoring model](docs/scoring.md) — how signals become scores and severities, correlation groups, what one signal can do alone, and the limits of the default weights.
 - [Process termination](docs/termination.md) — when a termination policy ends the process, how to keep a threat type report-only, and why termination is not a security boundary.
+- [Verifying reports on your server](docs/report-attestation.md) — server challenges, Key Attestation and Play Integrity, what the server must check, and what a verified report cannot prove.
 
 ## Release
 
