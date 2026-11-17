@@ -138,6 +138,8 @@ What this means in practice:
   threshold unless several emulator checks agree.
 - **A wrong signing certificate is CRITICAL on its own**; a changed APK or native-library checksum is
   HIGH.
+- **Only a signal rated HIGH or CRITICAL here can trigger termination.** Weak hints that add up to
+  HIGH or CRITICAL are reported but never end the process; see [termination.md](termination.md).
 
 This asymmetry is a consequence of the default weights, not a calibrated judgment (see below). If it
 does not suit your app, change `thresholds` or `detectionTuning`.

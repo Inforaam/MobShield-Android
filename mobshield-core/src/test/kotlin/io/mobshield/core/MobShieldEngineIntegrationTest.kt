@@ -116,18 +116,39 @@ class MobShieldEngineIntegrationTest {
         val high = listOf(event(Severity.HIGH))
         val medium = listOf(event(Severity.MEDIUM))
 
-        assertFalse(MobShieldEngine.shouldTerminate(critical, detectOnly = false, TerminationPolicy.NONE))
+        assertFalse(terminates(critical, TerminationPolicy.NONE))
         // detectOnly overrides any policy.
-        assertFalse(MobShieldEngine.shouldTerminate(critical, detectOnly = true, TerminationPolicy.EXIT_ON_CRITICAL))
+        assertFalse(terminates(critical, TerminationPolicy.EXIT_ON_CRITICAL, detectOnly = true))
         // EXIT_ON_CRITICAL fires only at critical.
-        assertTrue(MobShieldEngine.shouldTerminate(critical, detectOnly = false, TerminationPolicy.EXIT_ON_CRITICAL))
-        assertFalse(MobShieldEngine.shouldTerminate(high, detectOnly = false, TerminationPolicy.EXIT_ON_CRITICAL))
+        assertTrue(terminates(critical, TerminationPolicy.EXIT_ON_CRITICAL))
+        assertFalse(terminates(high, TerminationPolicy.EXIT_ON_CRITICAL))
         // EXIT_ON_BYPASS fires at high or above.
-        assertTrue(MobShieldEngine.shouldTerminate(high, detectOnly = false, TerminationPolicy.EXIT_ON_BYPASS))
-        assertTrue(MobShieldEngine.shouldTerminate(critical, detectOnly = false, TerminationPolicy.EXIT_ON_BYPASS))
-        assertFalse(MobShieldEngine.shouldTerminate(medium, detectOnly = false, TerminationPolicy.EXIT_ON_BYPASS))
-        assertFalse(MobShieldEngine.shouldTerminate(emptyList(), detectOnly = false, TerminationPolicy.EXIT_ON_BYPASS))
+        assertTrue(terminates(high, TerminationPolicy.EXIT_ON_BYPASS))
+        assertTrue(terminates(critical, TerminationPolicy.EXIT_ON_BYPASS))
+        assertFalse(terminates(medium, TerminationPolicy.EXIT_ON_BYPASS))
+        assertFalse(terminates(emptyList(), TerminationPolicy.EXIT_ON_BYPASS))
+        // Without a strong signal of its own type, no event terminates.
+        assertFalse(terminates(critical, TerminationPolicy.EXIT_ON_CRITICAL, strongTypes = emptySet()))
+        assertFalse(
+            terminates(critical, TerminationPolicy.EXIT_ON_CRITICAL, strongTypes = setOf(ThreatType.HOOK_FRAMEWORK)),
+        )
+        // A type left out of terminateOn never terminates.
+        assertFalse(
+            terminates(
+                critical,
+                TerminationPolicy.EXIT_ON_CRITICAL,
+                terminateOn = ThreatType.entries.toSet() - ThreatType.PRIVILEGED_ACCESS,
+            ),
+        )
     }
+
+    private fun terminates(
+        events: List<ThreatEvent>,
+        policy: TerminationPolicy,
+        detectOnly: Boolean = false,
+        strongTypes: Set<ThreatType> = ThreatType.entries.toSet(),
+        terminateOn: Set<ThreatType> = ThreatType.entries.toSet(),
+    ): Boolean = MobShieldEngine.shouldTerminate(events, detectOnly, policy, strongTypes, terminateOn)
 
     @Test
     fun engine_exitOnCritical_terminatesOnCriticalThreat() =
