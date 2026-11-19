@@ -76,20 +76,20 @@ abstract class VerifyMobShieldTask : DefaultTask() {
             )
         }
 
-        val entropy = readEntropyFromHeader(mobshieldHeaderFile.get().asFile)
+        val buildId = readBuildIdFromHeader(mobshieldHeaderFile.get().asFile)
         val coreLib = nativeLibraryFiles.files
             .filter { it.name == "libmobshieldcore.so" }
             .maxByOrNull { it.lastModified() }
 
         if (coreLib == null) {
-            logger.warn("MobShield verify: libmobshieldcore.so not found in build outputs; skipping entropy string check")
+            logger.warn("MobShield verify: libmobshieldcore.so not found in build outputs; skipping build ID check")
         } else {
             val libBytes = coreLib.readBytes()
-            val marker = "MOBSHIELD_ENTROPY=$entropy".toByteArray()
+            val marker = "MOBSHIELD_BUILD_ID=$buildId".toByteArray()
             if (!containsSubsequence(libBytes, marker)) {
                 throw GradleException(
-                    "MobShield verify failed: libmobshieldcore.so does not contain MOBSHIELD_BUILD_ENTROPY.\n" +
-                        "Expected marker: MOBSHIELD_ENTROPY=$entropy\n" +
+                    "MobShield verify failed: libmobshieldcore.so was not built with this build's header.\n" +
+                        "Expected marker: MOBSHIELD_BUILD_ID=$buildId\n" +
                         "Library: ${coreLib.absolutePath}",
                 )
             }
@@ -98,12 +98,12 @@ abstract class VerifyMobShieldTask : DefaultTask() {
         logger.lifecycle("MobShield verify passed for ${apk.name}")
     }
 
-    private fun readEntropyFromHeader(header: File): String {
-        val line = header.readLines().firstOrNull { it.contains("MOBSHIELD_BUILD_ENTROPY") }
-            ?: throw GradleException("MobShield verify: MOBSHIELD_BUILD_ENTROPY missing in ${header.path}")
-        val match = Regex("MOBSHIELD_BUILD_ENTROPY \"([0-9a-fA-F]+)\"").find(line)
-            ?: throw GradleException("MobShield verify: unable to parse MOBSHIELD_BUILD_ENTROPY")
-        return match.groupValues[1].lowercase()
+    private fun readBuildIdFromHeader(header: File): String {
+        val line = header.readLines().firstOrNull { it.contains("#define MOBSHIELD_BUILD_ID ") }
+            ?: throw GradleException("MobShield verify: MOBSHIELD_BUILD_ID missing in ${header.path}")
+        val match = Regex("MOBSHIELD_BUILD_ID \"([^\"]+)\"").find(line)
+            ?: throw GradleException("MobShield verify: unable to parse MOBSHIELD_BUILD_ID")
+        return match.groupValues[1]
     }
 
     private fun containsSubsequence(haystack: ByteArray, needle: ByteArray): Boolean {

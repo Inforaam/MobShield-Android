@@ -16,24 +16,50 @@
 
 package io.mobshield.gradle
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BuildInfoGeneratorTest {
     @Test
-    fun generate_producesUniqueEntropyPerSeed() {
+    fun generate_producesADifferentBuildIdPerSeed() {
         val first = BuildInfoGenerator.generate(request(seed = "a".repeat(64)))
         val second = BuildInfoGenerator.generate(request(seed = "b".repeat(64)))
+        assertNotEquals(first.buildId, second.buildId)
         assertNotEquals(first.headerContent, second.headerContent)
     }
 
     @Test
-    fun generate_includesSymbolMacrosWithPrefix() {
+    fun generate_isReproducibleForAFixedSeed() {
+        val first = BuildInfoGenerator.generate(request(seed = "a".repeat(64)))
+        val second = BuildInfoGenerator.generate(request(seed = "a".repeat(64)))
+        assertEquals(first.headerContent, second.headerContent)
+    }
+
+    @Test
+    fun generate_writesAPublicBuildId() {
         val result = BuildInfoGenerator.generate(request())
-        assertTrue(result.headerContent.contains("#define mobshield_check_root MOBSHIELD_R_"))
-        assertTrue(result.headerContent.contains("MOBSHIELD_BUILD_ENTROPY"))
-        assertTrue(result.headerContent.contains("MOBSHIELD_FN_PROLOGUE_CIPHERTEXT"))
+        assertTrue(Regex("android-[0-9a-f]{16}").matches(result.buildId))
+        assertTrue(result.headerContent.contains("#define MOBSHIELD_BUILD_ID \"${result.buildId}\""))
+    }
+
+    @Test
+    fun generate_writesNoKeyMaterial() {
+        // Everything in the header ends up readable in the app's binary, so it must not hold anything
+        // used as a key. These were removed because they were keyed by a value stored beside them.
+        val header = BuildInfoGenerator.generate(request()).headerContent
+        listOf("ENTROPY", "HMAC", "CIPHERTEXT", "NONCE", "SALT", "MOBSHIELD_R_").forEach {
+            assertFalse("Header must not contain $it", header.contains(it))
+        }
+    }
+
+    @Test
+    fun generate_buildIdDoesNotRevealTheSeed() {
+        val seed = "0123456789abcdef".repeat(4)
+        val result = BuildInfoGenerator.generate(request(seed = seed))
+        assertFalse(result.headerContent.contains(seed.take(16)))
     }
 
     @Test

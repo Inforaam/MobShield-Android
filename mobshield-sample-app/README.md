@@ -16,7 +16,7 @@ Integration reference for `mobshield-sample-app`: Compose UI, all detection modu
 4. Run on an emulator or device (API 24+).
 5. Tap **Start** on the Threats tab. Watch Logcat filtered by `MobShieldSample` for Timber output.
 6. Open **Signals** and tap **Refresh signals** to inspect raw probe output.
-7. Optional: `./gradlew :mobshield-sample-app:mobshieldInfo` to print personalization metadata.
+7. Optional: `./gradlew :mobshield-sample-app:mobshieldInfo` to print the build ID and expected signer.
 
 ## Gradle personalization
 
@@ -46,4 +46,4 @@ Replace the placeholder cert (all zeros) before running `:mobshieldVerify` on re
 | Threats | Live `ThreatEvent` cards with severity and score |
 | Config | Detect-only vs fail-closed, per-module toggles |
 | Signals | All raw `Signal` rows from enabled modules |
-| About | SDK version, build entropy preview, MASVS table |
+| About | SDK version, build ID, MASVS table |

@@ -37,13 +37,11 @@ abstract class InfoMobShieldTask : DefaultTask() {
         logger.lifecycle("  Header:    ${header.path}")
         header.readLines()
             .filter {
-                it.contains("MOBSHIELD_BUILD_ENTROPY") ||
+                it.contains("MOBSHIELD_BUILD_ID") ||
                     it.contains("MOBSHIELD_EXPECTED_SIGNER") ||
-                    it.contains("MOBSHIELD_EXPECTED_PACKAGE") ||
-                    it.contains("MOBSHIELD_NATIVELIB_HMAC") ||
-                    it.startsWith("#define mobshield_")
+                    it.contains("MOBSHIELD_EXPECTED_PACKAGE")
             }
             .forEach { logger.lifecycle("  $it") }
-        logger.lifecycle("  Note: personalized native binaries are not reproducible across builds.")
+        logger.lifecycle("  Note: the build ID is public and the header holds no secrets.")
     }
 }

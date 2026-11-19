@@ -113,8 +113,5 @@ object SampleMobShieldController {
             }
         }
 
-    fun buildEntropyPreview(): String {
-        val buildId = MobShield.getBuildId()
-        return buildId.take(8).ifEmpty { "--------" }
-    }
+    fun buildId(): String = MobShield.getBuildId().ifEmpty { "--------" }
 }

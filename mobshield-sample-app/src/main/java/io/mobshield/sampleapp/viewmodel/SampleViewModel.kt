@@ -53,7 +53,7 @@ class SampleViewModel(application: Application) : AndroidViewModel(application) 
     val posture: StateFlow<PostureUi> = _posture.asStateFlow()
 
     val sdkVersion: String = MobShield.getVersion()
-    val buildEntropyPreview: String = SampleMobShieldController.buildEntropyPreview()
+    val buildId: String = SampleMobShieldController.buildId()
     val nativeSelfCheck: Int = MobShield.selfCheck()
     val masvsRows = MasvsCatalog.rows
 

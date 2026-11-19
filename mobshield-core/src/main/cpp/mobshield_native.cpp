@@ -23,17 +23,14 @@
 namespace {
 bool g_initialized = false;
 
-#ifdef MOBSHIELD_BUILD_ENTROPY
-// Baked into .rodata so mobshieldVerify can locate entropy in libmobshieldcore.so.
-__attribute__((used, retain)) static const char kMobShieldEntropyAnchor[] =
-    "MOBSHIELD_ENTROPY=" MOBSHIELD_BUILD_ENTROPY;
-#endif
+// Kept in .rodata so mobshieldVerify can check that libmobshieldcore.so was built with this build's
+// header. The build ID is public; nothing secret may be embedded here.
+__attribute__((used, retain)) static const char kMobShieldBuildIdAnchor[] =
+    "MOBSHIELD_BUILD_ID=" MOBSHIELD_BUILD_ID;
 }  // namespace
 
 int mobshield_native_init(void) {
-#ifdef MOBSHIELD_BUILD_ENTROPY
-    (void)kMobShieldEntropyAnchor[0];
-#endif
+    (void)kMobShieldBuildIdAnchor[0];
     g_initialized = true;
     return 0;
 }
@@ -42,11 +39,7 @@ int mobshield_native_get_build_id(char* out, int out_len) {
     if (out == nullptr || out_len <= 0) {
         return -1;
     }
-#ifdef MOBSHIELD_BUILD_ENTROPY
-    const char* value = MOBSHIELD_BUILD_ENTROPY;
-#else
     const char* value = MOBSHIELD_BUILD_ID;
-#endif
     const int needed = static_cast<int>(std::strlen(value));
     if (needed >= out_len) {
         return -1;

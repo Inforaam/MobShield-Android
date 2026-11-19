@@ -48,7 +48,7 @@ fun AboutScreen(viewModel: SampleViewModel) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("SDK version ${viewModel.sdkVersion}")
-                Text("Build entropy ${viewModel.buildEntropyPreview} (first 8 chars)")
+                Text("Build ID ${viewModel.buildId}")
                 Text("Native self-check ${viewModel.nativeSelfCheck}")
                 Text(
                     "Personalized native binaries are not reproducible across builds.",

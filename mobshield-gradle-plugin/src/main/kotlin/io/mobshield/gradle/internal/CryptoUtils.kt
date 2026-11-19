@@ -18,54 +18,27 @@ package io.mobshield.gradle.internal
 
 import java.security.MessageDigest
 import java.security.SecureRandom
-import javax.crypto.Cipher
-import javax.crypto.Mac
-import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.SecretKeySpec
 
 internal object CryptoUtils {
-    fun randomBytes(length: Int, seed: ByteArray? = null): ByteArray {
-        if (seed != null) {
-            val digest = MessageDigest.getInstance("SHA-256")
-            digest.update(seed)
-            digest.update("mobshield-entropy-v1".toByteArray())
-            val out = ByteArray(length)
-            var generated = 0
-            var round = 0
-            while (generated < length) {
-                val block = MessageDigest.getInstance("SHA-256").digest(seed + byteArrayOf(round.toByte()))
-                val copy = minOf(block.size, length - generated)
-                System.arraycopy(block, 0, out, generated, copy)
-                generated += copy
-                round++
-            }
-            return out
-        }
+    fun randomBytes(length: Int): ByteArray {
         val bytes = ByteArray(length)
         SecureRandom().nextBytes(bytes)
         return bytes
     }
 
+    /** First [length] bytes (at most 32) of SHA-256 over [label], a zero byte and [seed]. */
+    fun deriveBytes(seed: ByteArray, label: String, length: Int): ByteArray {
+        require(length in 1..32) { "length must be 1 to 32" }
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(label.toByteArray())
+        digest.update(0)
+        digest.update(seed)
+        return digest.digest().copyOf(length)
+    }
+
     fun sha256Hex(data: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(data).toHex()
-
-    fun hmacSha256Hex(key: ByteArray, data: ByteArray): String {
-        val mac = Mac.getInstance("HmacSHA256")
-        mac.init(SecretKeySpec(key, "HmacSHA256"))
-        return mac.doFinal(data).toHex()
-    }
-
-    fun encryptAesGcm(plaintext: ByteArray, key: ByteArray, salt: ByteArray): AesGcmBlob {
-        val aesKey = MessageDigest.getInstance("SHA-256").digest(key + salt).copyOf(32)
-        val nonce = randomBytes(12, aesKey + salt)
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(aesKey, "AES"), GCMParameterSpec(128, nonce))
-        val ciphertext = cipher.doFinal(plaintext)
-        return AesGcmBlob(nonce = nonce, ciphertext = ciphertext)
-    }
 
     fun normalizeSha256(input: String): String = input.replace(":", "").lowercase()
 
     private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
 }
-
-internal data class AesGcmBlob(val nonce: ByteArray, val ciphertext: ByteArray)

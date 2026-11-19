@@ -42,9 +42,8 @@ class MobShieldPluginFunctionalTest {
         val header = File(projectDir, "app/build/mobshield/include/mobshield_buildinfo.h")
         assertTrue("Expected generated header at ${header.path}", header.exists())
         val content = header.readText()
-        assertTrue(content.contains("MOBSHIELD_BUILD_ENTROPY"))
-        assertTrue(content.contains("MOBSHIELD_R_"))
-        assertTrue(content.contains("Not reproducible across builds"))
+        assertTrue(Regex("#define MOBSHIELD_BUILD_ID \"android-[0-9a-f]{16}\"").containsMatchIn(content))
+        assertTrue(!content.contains("ENTROPY"))
     }
 
     @Test

@@ -31,7 +31,7 @@ Reads `/proc/self/maps` for `frida-agent`, `gum-js-loop`, `linjector`, `XposedBr
 
 ### 2. function_prologue_inspect.cpp
 
-Reads first 16 bytes of `open`, `read`, `syscall`, `android_dlopen_ext` via `dlsym`. Compares against XOR-encrypted baselines keyed by `MOBSHIELD_HOOKS_ENTROPY_SEED_*` from `generateHooksBuildInfo` (overridden by `mobshield-plugin` at app build time). When baselines are unset (`0xFF`), uses ARM64 trampoline heuristic only.
+Reads first 16 bytes of `open`, `read`, `syscall`, `android_dlopen_ext` via `dlsym`. Can compare against XOR-masked baselines from `generateHooksBuildInfo`, but no build step fills them in today: every baseline is unset (`0xFF`), so the check uses the ARM64 trampoline heuristic only. The XOR mask is derived from constants in the same library, so it hides nothing from someone reading it.
 
 **Survives Frida Stalker:** yes for inline hooks that patch function entry (Stalker does not rewrite prologue in all modes).
 
@@ -87,7 +87,7 @@ MobShield.start(context, config, listener)
 - No `Runtime.exec` or shell.
 - Native JNI calls use 100ms Kotlin `withTimeout` per check.
 - Graceful degradation when `/proc` is unavailable (Android 11+ scoped restrictions).
-- Encrypted prologue baselines tied to per-build entropy seed.
+- No secrets in the library: see [personalization.md](../personalization.md).
 
 ## Emulator acceptance
 
