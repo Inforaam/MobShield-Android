@@ -1,6 +1,6 @@
 # MobShield Android
 
-Open-source mobile app hardening for Android: modular RASP detectors, signal aggregation, and per-build native personalization.
+Open-source mobile app hardening for Android: modular RASP detectors, signal aggregation, and server-verifiable reports.
 
 [![Android CI](https://github.com/Inforaam/MobShield-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Inforaam/MobShield-Android/actions/workflows/android-ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.inforaam/mobshield-core)](https://central.sonatype.com/artifact/io.github.inforaam/mobshield-core)
@@ -34,7 +34,7 @@ MobShield runs a set of detection modules, aggregates their weighted signals int
 | `mobshield-detect-debugger` | ptrace, TracerPid |
 | `mobshield-detect-environment` | Emulator, automation, ADB |
 | `mobshield-detect-integrity` | Signature and build anchor |
-| `mobshield-gradle-plugin` | Per-build personalization (`io.mobshield.personalize`) |
+| `mobshield-gradle-plugin` | Build ID and signing check for source builds (`io.mobshield.personalize`); see [docs/personalization.md](docs/personalization.md) |
 | `mobshield-sample-app` | Compose integration demo (all detectors) |
 
 ## Why MobShield
@@ -43,7 +43,6 @@ MobShield runs a set of detection modules, aggregates their weighted signals int
 - **No telemetry.** MobShield makes no network calls. Threat events go only to your listener and, if you choose, your backend.
 - **Modular.** Add only the detectors you need.
 - **Safe to roll out.** It's detect-only by default and never kills your process unless you opt in.
-- **Harder to bypass generically.** The Gradle plugin personalizes each build, so one off-the-shelf bypass script doesn't fit every app.
 - **Server-verifiable.** Posture reports answer a challenge from your server and are signed by a hardware-attested key (or bound to a Play Integrity verdict), so your backend can check where a report came from and that it is fresh.
 
 MobShield raises the cost of an attack. Like any client-side protection, it can't make an app unbreakable, so pair it with server-side checks.
@@ -61,7 +60,6 @@ MobShield raises the cost of an attack. Like any client-side protection, it can'
 | Emulator / automation / ADB | ✅ | ✅ | ❌ |
 | Signature / repackaging integrity | ✅ | ✅ | ❌ |
 | Backend-verifiable report | ✅ Key Attestation or Play Integrity, your own server | AppiCrypt (commercial plan) | ❌ |
-| Per-build personalization | ✅ | ❌ | ❌ |
 | Platforms | Android + [iOS](https://github.com/Inforaam/MobShield-iOS) | Android, iOS, Flutter, RN, Cordova, Capacitor | Android |
 
 freeRASP is ahead on cross-platform framework support and a few extra checks, such as installation source and screen capture. If you need those today, it's a good choice. *Comparison based on each project's public README as of October 2026. Corrections are welcome via PR.*
@@ -102,7 +100,7 @@ dependencies {
 }
 ```
 
-The `io.mobshield.personalize` Gradle plugin is not part of the Maven Central release, because its plugin id sits outside the `io.github.inforaam` namespace.
+The `io.mobshield.personalize` Gradle plugin is not part of the Maven Central release, because its plugin id sits outside the `io.github.inforaam` namespace. It only affects builds that compile MobShield from source; the Maven Central binaries are the same in every app (see [docs/personalization.md](docs/personalization.md)).
 
 ### JitPack (single umbrella dependency)
 
@@ -195,6 +193,7 @@ See [mobshield-sample-app/README.md](mobshield-sample-app/README.md) for a walkt
 - [Detection notes](docs/detection) — per-detector background.
 - [Scoring model](docs/scoring.md) — how signals become scores and severities, correlation groups, what one signal can do alone, and the limits of the default weights.
 - [Process termination](docs/termination.md) — when a termination policy ends the process, how to keep a threat type report-only, and why termination is not a security boundary.
+- [Build personalization](docs/personalization.md) — what the Gradle plugin does, why prebuilt binaries are the same in every app, and why the app holds no secrets.
 - [Verifying reports on your server](docs/report-attestation.md) — server challenges, Key Attestation and Play Integrity, what the server must check, and what a verified report cannot prove.
 
 ## Release

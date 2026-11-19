@@ -89,7 +89,7 @@ class MobShieldPlugin : Plugin<Project> {
 
         val verifyTask = project.tasks.register("mobshieldVerify", VerifyMobShieldTask::class.java) { task ->
             task.group = "mobshield"
-            task.description = "Verifies APK signing cert and MobShield entropy in native libraries"
+            task.description = "Verifies the APK signing cert and that native libraries were built with this build ID"
             task.expectedSigningCertSha256.set(extension.expectedSigningCertSha256)
             task.mobshieldSeedFile.set(seedFile)
             task.mobshieldHeaderFile.set(headerFile)
