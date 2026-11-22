@@ -43,7 +43,10 @@ import io.mobshield.sampleapp.ui.diagnostics.DiagnosticsScreen
 import io.mobshield.sampleapp.ui.home.HomeScreen
 import io.mobshield.sampleapp.viewmodel.SampleViewModel
 
-private sealed class SampleRoute(val route: String, val label: String) {
+private sealed class SampleRoute(
+    val route: String,
+    val label: String,
+) {
     data object Home : SampleRoute("home", "Threats")
 
     data object Config : SampleRoute("config", "Config")

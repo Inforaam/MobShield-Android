@@ -146,8 +146,8 @@ class IntegrityDetectionModule(
         )
     }
 
-    private fun readInstallingPackageName(): String? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+    private fun readInstallingPackageName(): String? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
                 packageManager.getInstallSourceInfo(packageName).installingPackageName
             } catch (_: PackageManager.NameNotFoundException) {
@@ -157,7 +157,6 @@ class IntegrityDetectionModule(
             @Suppress("DEPRECATION")
             packageManager.getInstallerPackageName(packageName)
         }
-    }
 
     companion object {
         const val MODULE_NAME = "integrity"

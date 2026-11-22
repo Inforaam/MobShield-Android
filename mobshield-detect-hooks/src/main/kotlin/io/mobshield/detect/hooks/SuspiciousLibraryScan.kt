@@ -42,7 +42,9 @@ class SuspiciousLibraryScan(
         return null
     }
 
-    data class ScanHit(val library: String)
+    data class ScanHit(
+        val library: String,
+    )
 
     companion object {
         val DEFAULT_LIBRARIES =
@@ -52,12 +54,11 @@ class SuspiciousLibraryScan(
                 "substrate",
             )
 
-        fun readMapsSafely(): String? {
-            return try {
+        fun readMapsSafely(): String? =
+            try {
                 File("/proc/self/maps").readText()
             } catch (_: Exception) {
                 null
             }
-        }
     }
 }

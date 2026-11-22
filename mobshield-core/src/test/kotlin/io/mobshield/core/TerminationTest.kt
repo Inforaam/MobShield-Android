@@ -64,7 +64,12 @@ class TerminationTest {
             val run = scan(critical, *weak.toTypedArray())
 
             assertEquals(0, run.terminated)
-            assertEquals(Severity.CRITICAL, run.listener.threats.single().severity)
+            assertEquals(
+                Severity.CRITICAL,
+                run.listener.threats
+                    .single()
+                    .severity,
+            )
         }
 
     @Test
@@ -81,7 +86,12 @@ class TerminationTest {
             val run = scan(critical, mountNamespace, magiskSocket)
 
             assertEquals(1, run.terminated)
-            assertEquals(Severity.CRITICAL, run.listener.threats.single().severity)
+            assertEquals(
+                Severity.CRITICAL,
+                run.listener.threats
+                    .single()
+                    .severity,
+            )
         }
 
     @Test
@@ -102,7 +112,12 @@ class TerminationTest {
             val run = scan(config, mountNamespace, magiskSocket)
 
             assertEquals(0, run.terminated)
-            assertEquals(Severity.CRITICAL, run.listener.threats.single().severity)
+            assertEquals(
+                Severity.CRITICAL,
+                run.listener.threats
+                    .single()
+                    .severity,
+            )
         }
 
     @Test
@@ -120,7 +135,12 @@ class TerminationTest {
             val run = scan(critical, selfCheck = { 0 })
 
             assertEquals(1, run.terminated)
-            assertEquals(ThreatType.APP_INTEGRITY, run.listener.threats.single().type)
+            assertEquals(
+                ThreatType.APP_INTEGRITY,
+                run.listener.threats
+                    .single()
+                    .type,
+            )
         }
 
     @Test

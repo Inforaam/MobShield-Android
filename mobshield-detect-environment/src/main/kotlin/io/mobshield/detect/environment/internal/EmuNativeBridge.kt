@@ -52,4 +52,7 @@ internal object EmuNativeBridge {
     @JvmStatic private external fun nativeCpuFeaturesEvidence(): String
 }
 
-internal data class NativeCheckResult(val code: Int, val evidence: String)
+internal data class NativeCheckResult(
+    val code: Int,
+    val evidence: String,
+)

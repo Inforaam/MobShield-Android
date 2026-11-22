@@ -48,7 +48,10 @@ class DangerousPackagesScan(
     )
 
     companion object {
-        private data class KnownPackage(val packageName: String, val label: String)
+        private data class KnownPackage(
+            val packageName: String,
+            val label: String,
+        )
 
         private val knownPackages =
             listOf(

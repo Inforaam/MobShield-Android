@@ -22,7 +22,9 @@ import io.mobshield.core.Signal
 import io.mobshield.core.ThreatEvent
 import io.mobshield.core.ThreatType
 
-enum class ModuleId(val label: String) {
+enum class ModuleId(
+    val label: String,
+) {
     ROOT("Root / privileged access"),
     HOOKS("Hooks / instrumentation"),
     DEBUGGER("Debugger / ADB"),
@@ -56,7 +58,8 @@ data class ThreatCardUi(
                 score = event.score,
                 signals = event.signals,
                 metadataSummary =
-                    event.metadata.entries.joinToString { "${it.key}=${it.value}" }
+                    event.metadata.entries
+                        .joinToString { "${it.key}=${it.value}" }
                         .ifEmpty { "no metadata" },
                 timestampMs = event.timestampMs,
             )
@@ -76,7 +79,8 @@ data class SignalRowUi(
                 weight = signal.weight,
                 confidence = signal.confidence,
                 evidenceSummary =
-                    signal.evidence.entries.joinToString { "${it.key}=${it.value}" }
+                    signal.evidence.entries
+                        .joinToString { "${it.key}=${it.value}" }
                         .ifEmpty { "-" },
             )
     }

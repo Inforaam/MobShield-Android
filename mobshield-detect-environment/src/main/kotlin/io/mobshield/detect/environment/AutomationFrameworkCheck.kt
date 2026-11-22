@@ -39,7 +39,9 @@ class AutomationFrameworkCheck(
         return ScanHit(matches.toList())
     }
 
-    data class ScanHit(val matches: List<String>)
+    data class ScanHit(
+        val matches: List<String>,
+    )
 
     companion object {
         val AUTOMATION_SERVICE_MARKERS =

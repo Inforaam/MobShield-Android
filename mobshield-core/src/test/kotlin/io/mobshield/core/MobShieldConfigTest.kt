@@ -33,7 +33,8 @@ class MobShieldConfigTest {
     fun builder_producesEquivalentConfig() {
         val signer = "a".repeat(64)
         val built =
-            MobShieldConfig.builder()
+            MobShieldConfig
+                .builder()
                 .detectOnly(false)
                 .expectedSigners(listOf(signer))
                 .terminationPolicy(TerminationPolicy.EXIT_ON_CRITICAL)

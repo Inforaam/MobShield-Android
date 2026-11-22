@@ -42,5 +42,7 @@ object SystemPropertiesProbe {
         return ScanHit(anomalies)
     }
 
-    data class ScanHit(val properties: Map<String, String>)
+    data class ScanHit(
+        val properties: Map<String, String>,
+    )
 }

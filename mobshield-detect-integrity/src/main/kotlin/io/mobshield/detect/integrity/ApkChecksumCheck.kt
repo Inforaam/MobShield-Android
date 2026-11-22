@@ -55,7 +55,9 @@ class ApkChecksumCheck(
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                 return null
             }
-            val result = java.util.concurrent.atomic.AtomicReference<String?>()
+            val result =
+                java.util.concurrent.atomic
+                    .AtomicReference<String?>()
             val latch = java.util.concurrent.CountDownLatch(1)
             val listener =
                 PackageManager.OnChecksumsReadyListener { checksums ->
