@@ -1,16 +1,14 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 
 plugins {
-    id("com.android.application") version "8.5.2" apply false
-    id("com.android.library") version "8.5.2" apply false
-    id("org.jetbrains.kotlin.android") version "2.0.21" apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    id("org.jetbrains.kotlin.jvm") version "2.0.21" apply false
-    id("io.gitlab.arturbosch.detekt") version "1.23.7" apply false
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.1" apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.maven.publish) apply false
     alias(libs.plugins.nexus.publish)
 }
@@ -108,7 +106,7 @@ subprojects {
         }
 
         // Deployments wait in the Central Portal for a manual "Publish" until a first release has been checked.
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
+        publishToMavenCentral(automaticRelease = false)
         if (hasSigningCredentials()) {
             signAllPublications()
         }

@@ -4,7 +4,6 @@ import java.util.zip.ZipOutputStream
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
 val embeddedModules =
@@ -19,7 +18,12 @@ val embeddedModules =
 
 android {
     namespace = "io.mobshield"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk {
+        version =
+            release(libs.versions.compileSdk.get().toInt()) {
+                minorApiLevel = libs.versions.compileSdkMinor.get().toInt()
+            }
+    }
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
@@ -29,10 +33,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 }
 

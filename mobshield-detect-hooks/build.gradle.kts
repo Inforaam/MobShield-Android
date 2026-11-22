@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
 }
@@ -67,7 +66,12 @@ fun deriveKey(
 
 android {
     namespace = "io.mobshield.detect.hooks"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk {
+        version =
+            release(libs.versions.compileSdk.get().toInt()) {
+                minorApiLevel = libs.versions.compileSdkMinor.get().toInt()
+            }
+    }
     ndkVersion = libs.versions.ndk.get()
 
     defaultConfig {
@@ -101,9 +105,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     testOptions {
