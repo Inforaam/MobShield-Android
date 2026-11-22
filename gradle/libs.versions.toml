@@ -1,6 +1,8 @@
 [versions]
 agp = "9.5.1"
 kotlin = "2.4.21"
+# kotlin-stdlib version the published modules depend on; see the root build.gradle.kts.
+kotlinStdlibForConsumers = "2.2.20"
 detekt = "1.23.8"
 ktlint = "14.2.0"
 compileSdk = "37"

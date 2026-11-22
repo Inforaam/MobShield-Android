@@ -1,6 +1,9 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -68,6 +71,21 @@ val mobshieldVersion: String =
 subprojects {
     if (name !in publishableAndroidModules) {
         return@subprojects
+    }
+
+    // Apps that use MobShield read its Kotlin metadata and resolve its kotlin-stdlib with their own Kotlin
+    // compiler, which reads metadata up to one version newer than itself. Compiling the published modules
+    // at 2.2 keeps them usable from Kotlin 2.1, the floor that kotlinx-coroutines already sets.
+    tasks.withType<KotlinCompilationTask<*>>().configureEach {
+        compilerOptions {
+            languageVersion.set(KotlinVersion.KOTLIN_2_2)
+            apiVersion.set(KotlinVersion.KOTLIN_2_2)
+        }
+    }
+    plugins.withId("com.android.library") {
+        extensions.configure<KotlinProjectExtension> {
+            coreLibrariesVersion = rootProject.libs.versions.kotlinStdlibForConsumers.get()
+        }
     }
 
     pluginManager.apply(rootProject.libs.plugins.maven.publish.get().pluginId)
