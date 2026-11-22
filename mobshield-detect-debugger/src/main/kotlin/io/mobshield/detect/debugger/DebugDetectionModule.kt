@@ -69,36 +69,9 @@ class DebugDetectionModule(
             emptyList()
         }
 
-    private fun scanAppDebuggable(): List<Signal> {
-        val hit = appDebuggable.scan() ?: return emptyList()
-        val weight = if (hit.isReleaseBuild) 70 else 0
-        if (weight == 0) {
-            return emptyList()
-        }
-        return listOf(
-            DebugSignalDefaults.buildSignal(
-                DebugSignalDefaults.APP_DEBUGGABLE,
-                mapOf("releaseBuild" to hit.isReleaseBuild.toString()),
-                detectionTuning,
-                SignalTuning(weight = weight, confidence = 60),
-            ),
-        )
-    }
+    private fun scanAppDebuggable(): List<Signal> = appDebuggableSignals(appDebuggable.scan(), detectionTuning)
 
-    private fun scanAdb(): List<Signal> {
-        val hit = adbCheck.scan() ?: return emptyList()
-        return listOf(
-            DebugSignalDefaults.buildSignal(
-                DebugSignalDefaults.ADB_ENABLED,
-                mapOf(
-                    "adb" to hit.adbEnabled.toString(),
-                    "usb" to hit.usbDebugging.toString(),
-                ),
-                detectionTuning,
-                SignalTuning(weight = 30, confidence = 40),
-            ),
-        )
-    }
+    private fun scanAdb(): List<Signal> = adbSignals(adbCheck.scan(), detectionTuning)
 
     private fun scanWaitingDebugger(): List<Signal> {
         val hit = WaitingForDebugger.scan() ?: return emptyList()
@@ -132,5 +105,41 @@ class DebugDetectionModule(
         const val MODULE_NAME = "debug"
         const val CRITICALITY = 100
         val DEFAULT_NATIVE_TIMEOUT_MS = TimeUnit.MILLISECONDS.toMillis(50)
+
+        /** A debuggable app is only reported for release builds; debug builds are debuggable by design. */
+        internal fun appDebuggableSignals(
+            hit: AppDebuggable.ScanHit?,
+            tuning: Map<String, SignalTuning>,
+        ): List<Signal> {
+            if (hit == null || !hit.isReleaseBuild) {
+                return emptyList()
+            }
+            return listOf(
+                DebugSignalDefaults.buildSignal(
+                    DebugSignalDefaults.APP_DEBUGGABLE,
+                    mapOf("releaseBuild" to hit.isReleaseBuild.toString()),
+                    tuning,
+                ),
+            )
+        }
+
+        internal fun adbSignals(
+            hit: AdbEnabledCheck.ScanHit?,
+            tuning: Map<String, SignalTuning>,
+        ): List<Signal> {
+            if (hit == null) {
+                return emptyList()
+            }
+            return listOf(
+                DebugSignalDefaults.buildSignal(
+                    DebugSignalDefaults.ADB_ENABLED,
+                    mapOf(
+                        "adb" to hit.adbEnabled.toString(),
+                        "usb" to hit.usbDebugging.toString(),
+                    ),
+                    tuning,
+                ),
+            )
+        }
     }
 }
