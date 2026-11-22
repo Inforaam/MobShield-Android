@@ -9,7 +9,9 @@ same default thresholds and correlation groups.
 Each detector check emits a **signal** with a name, a **weight** (0-100, how serious the finding is
 if true) and a **confidence** (0-100, how sure the check is). Signals are routed to a threat type by
 name prefix (for example `android.root.*` and `ios.jb.*` go to `PRIVILEGED_ACCESS`; any name
-containing `.hook.` goes to `HOOK_FRAMEWORK`). Names that match no prefix are ignored.
+containing `.hook.` goes to `HOOK_FRAMEWORK`). Names that match no prefix are ignored, and
+MobShield logs a warning (tag `MobShield`) the first time it sees each one. `detectionTuning` and
+`signalGroups` entries whose names match no prefix are logged when MobShield starts.
 
 For each threat type, the score is computed like this:
 

@@ -34,6 +34,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.coroutineContext
 
@@ -46,16 +47,19 @@ internal class MobShieldEngine(
     periodicIntervalMsOverride: Long? = null,
     private val terminate: () -> Unit = defaultTerminate,
     private val selfCheck: () -> Int = defaultSelfCheck,
+    private val warn: (String) -> Unit = defaultWarn,
 ) {
     private val stateRef = AtomicReference(idleState())
     private val lastEventsRef = AtomicReference<List<ThreatEvent>>(emptyList())
     private var scanJob: Job? = null
+    private val warnedSignalNames: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     // Rescan cadence in milliseconds; null runs a single scan wave (spec default).
     private val periodicIntervalMs: Long? =
         periodicIntervalMsOverride ?: config.periodicIntervalSec?.let { it.toLong() * MILLIS_PER_SECOND }
 
     fun start() {
+        warnAboutUnknownConfigNames()
         scanJob?.cancel()
         scanJob =
             scope.launch {
@@ -125,6 +129,7 @@ internal class MobShieldEngine(
         // Native core integrity runs every wave, independent of registered modules.
         val signals = moduleSignals + listOfNotNull(makeSelfCheckSignal())
 
+        warnAboutUnknownSignals(signals)
         val aggregator = SignalAggregator(config)
         val events = aggregator.aggregate(signals)
         for (event in events) {
@@ -134,6 +139,24 @@ internal class MobShieldEngine(
         stateRef.set(buildState(events, running = true))
         lastEventsRef.set(events)
         return ScanWave(events, aggregator.typesWithStrongSignal(signals))
+    }
+
+    private fun warnAboutUnknownConfigNames() {
+        val entries =
+            unknownSignalNames(config.detectionTuning.keys).map { "detectionTuning" to it } +
+                unknownSignalNames(config.signalGroups.keys).map { "signalGroups" to it }
+        for ((setting, name) in entries) {
+            warn("$setting has an entry for \"$name\", which matches no threat type, so it has no effect. $NAMING_HINT")
+        }
+    }
+
+    /** Warns once per engine for each signal name that no threat type accepts. */
+    private fun warnAboutUnknownSignals(signals: List<Signal>) {
+        for (name in unknownSignalNames(signals.map { it.name })) {
+            if (warnedSignalNames.add(name)) {
+                warn("Ignoring signal \"$name\": its name matches no threat type. $NAMING_HINT")
+            }
+        }
     }
 
     /**
@@ -205,6 +228,20 @@ internal class MobShieldEngine(
         internal val defaultTerminate: () -> Unit = {
             android.os.Process.killProcess(android.os.Process.myPid())
         }
+
+        private const val LOG_TAG = "MobShield"
+        private const val NAMING_HINT =
+            "Signal names are routed by prefix, for example android.root., android.debug. or a name " +
+                "containing .hook.; see docs/scoring.md."
+
+        /** Default warning sink. Never throws, so a missing logger cannot break a scan. */
+        internal val defaultWarn: (String) -> Unit = { message ->
+            runCatching { android.util.Log.w(LOG_TAG, message) }
+        }
+
+        /** Distinct names in [names] that [SignalAggregator.resolveThreatType] maps to no threat type. */
+        internal fun unknownSignalNames(names: Iterable<String>): List<String> =
+            names.filter { SignalAggregator.resolveThreatType(it) == null }.distinct()
 
         /** Native core integrity probe; a healthy core returns nonzero. */
         internal val defaultSelfCheck: () -> Int = { NativeBridge.selfCheck() }
