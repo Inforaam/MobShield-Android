@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
@@ -21,7 +20,12 @@ mobshield {
 
 android {
     namespace = "io.mobshield.sampleapp"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk {
+        version =
+            release(libs.versions.compileSdk.get().toInt()) {
+                minorApiLevel = libs.versions.compileSdkMinor.get().toInt()
+            }
+    }
 
     defaultConfig {
         applicationId = "io.mobshield.sampleapp"
@@ -39,10 +43,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     packaging {

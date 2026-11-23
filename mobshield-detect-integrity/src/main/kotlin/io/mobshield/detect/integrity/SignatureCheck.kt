@@ -53,13 +53,12 @@ class SignatureCheck(
         fun certificateDigests(
             packageManager: PackageManager,
             packageName: String,
-        ): List<String> {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        ): List<String> =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 certificateDigestsApi28(packageManager, packageName)
             } else {
                 certificateDigestsLegacy(packageManager, packageName)
             }
-        }
 
         @SuppressLint("NewApi", "InlinedApi")
         private fun certificateDigestsApi28(

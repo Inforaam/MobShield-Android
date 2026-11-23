@@ -27,7 +27,10 @@ class SensorCountCheck(
         return ScanHit(count = count, threshold = minimumPhysicalSensors)
     }
 
-    data class ScanHit(val count: Int, val threshold: Int)
+    data class ScanHit(
+        val count: Int,
+        val threshold: Int,
+    )
 
     companion object {
         const val DEFAULT_MINIMUM_SENSORS = 7

@@ -43,8 +43,8 @@ class XposedModuleQuery(
         fun tryLoad(
             classLoader: ClassLoader,
             className: String,
-        ): Boolean {
-            return try {
+        ): Boolean =
+            try {
                 Class.forName(className, false, classLoader)
                 true
             } catch (_: ClassNotFoundException) {
@@ -52,8 +52,9 @@ class XposedModuleQuery(
             } catch (_: LinkageError) {
                 false
             }
-        }
     }
 
-    data class ScanHit(val className: String)
+    data class ScanHit(
+        val className: String,
+    )
 }

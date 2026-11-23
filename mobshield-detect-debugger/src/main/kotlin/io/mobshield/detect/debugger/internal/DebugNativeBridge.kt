@@ -52,4 +52,7 @@ internal object DebugNativeBridge {
     @JvmStatic private external fun nativeTimingEvidence(): String
 }
 
-internal data class NativeCheckResult(val code: Int, val evidence: String)
+internal data class NativeCheckResult(
+    val code: Int,
+    val evidence: String,
+)

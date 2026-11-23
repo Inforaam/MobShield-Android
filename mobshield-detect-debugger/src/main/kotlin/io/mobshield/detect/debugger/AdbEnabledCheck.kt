@@ -34,18 +34,20 @@ class AdbEnabledCheck(
         return ScanHit(adbEnabled = adb, usbDebugging = usbDebug)
     }
 
-    data class ScanHit(val adbEnabled: Boolean, val usbDebugging: Boolean)
+    data class ScanHit(
+        val adbEnabled: Boolean,
+        val usbDebugging: Boolean,
+    )
 
     companion object {
         fun readGlobalInt(
             context: Context,
             key: String,
-        ): Int {
-            return try {
+        ): Int =
+            try {
                 Settings.Global.getInt(context.contentResolver, key)
             } catch (_: Settings.SettingNotFoundException) {
                 0
             }
-        }
     }
 }

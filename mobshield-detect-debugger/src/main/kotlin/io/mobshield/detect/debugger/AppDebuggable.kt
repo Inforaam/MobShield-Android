@@ -34,20 +34,20 @@ class AppDebuggable(
         return ScanHit(isReleaseBuild = isReleaseBuild())
     }
 
-    data class ScanHit(val isReleaseBuild: Boolean)
+    data class ScanHit(
+        val isReleaseBuild: Boolean,
+    )
 
     companion object {
-        fun isDebuggableFlagSet(context: Context): Boolean {
-            return (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        }
+        fun isDebuggableFlagSet(context: Context): Boolean =
+            (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
-        fun isReleaseVariant(context: Context): Boolean {
-            return try {
+        fun isReleaseVariant(context: Context): Boolean =
+            try {
                 val buildConfig = Class.forName("${context.packageName}.BuildConfig")
                 !buildConfig.getField("DEBUG").getBoolean(null)
             } catch (_: Exception) {
                 !isDebuggableFlagSet(context)
             }
-        }
     }
 }

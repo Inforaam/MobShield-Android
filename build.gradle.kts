@@ -1,16 +1,17 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
-    id("com.android.application") version "8.5.2" apply false
-    id("com.android.library") version "8.5.2" apply false
-    id("org.jetbrains.kotlin.android") version "2.0.21" apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    id("org.jetbrains.kotlin.jvm") version "2.0.21" apply false
-    id("io.gitlab.arturbosch.detekt") version "1.23.7" apply false
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.1" apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.maven.publish) apply false
     alias(libs.plugins.nexus.publish)
 }
@@ -72,6 +73,21 @@ subprojects {
         return@subprojects
     }
 
+    // Apps that use MobShield read its Kotlin metadata and resolve its kotlin-stdlib with their own Kotlin
+    // compiler, which reads metadata up to one version newer than itself. Compiling the published modules
+    // at 2.2 keeps them usable from Kotlin 2.1, the floor that kotlinx-coroutines already sets.
+    tasks.withType<KotlinCompilationTask<*>>().configureEach {
+        compilerOptions {
+            languageVersion.set(KotlinVersion.KOTLIN_2_2)
+            apiVersion.set(KotlinVersion.KOTLIN_2_2)
+        }
+    }
+    plugins.withId("com.android.library") {
+        extensions.configure<KotlinProjectExtension> {
+            coreLibrariesVersion = rootProject.libs.versions.kotlinStdlibForConsumers.get()
+        }
+    }
+
     pluginManager.apply(rootProject.libs.plugins.maven.publish.get().pluginId)
 
     val artifactId = name
@@ -108,7 +124,7 @@ subprojects {
         }
 
         // Deployments wait in the Central Portal for a manual "Publish" until a first release has been checked.
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = false)
+        publishToMavenCentral(automaticRelease = false)
         if (hasSigningCredentials()) {
             signAllPublications()
         }

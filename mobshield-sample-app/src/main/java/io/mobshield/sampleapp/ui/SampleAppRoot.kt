@@ -18,9 +18,9 @@ package io.mobshield.sampleapp.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -43,7 +43,10 @@ import io.mobshield.sampleapp.ui.diagnostics.DiagnosticsScreen
 import io.mobshield.sampleapp.ui.home.HomeScreen
 import io.mobshield.sampleapp.viewmodel.SampleViewModel
 
-private sealed class SampleRoute(val route: String, val label: String) {
+private sealed class SampleRoute(
+    val route: String,
+    val label: String,
+) {
     data object Home : SampleRoute("home", "Threats")
 
     data object Config : SampleRoute("config", "Config")
@@ -89,7 +92,7 @@ fun SampleAppRoot(viewModel: SampleViewModel = viewModel()) {
                                     when (item) {
                                         SampleRoute.Home -> Icons.Default.Home
                                         SampleRoute.Config -> Icons.Default.Settings
-                                        SampleRoute.Diagnostics -> Icons.Default.List
+                                        SampleRoute.Diagnostics -> Icons.AutoMirrored.Filled.List
                                         SampleRoute.About -> Icons.Default.Info
                                     },
                                 contentDescription = item.label,

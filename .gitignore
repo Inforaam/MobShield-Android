@@ -21,3 +21,4 @@ out/
 google-services.json
 *.keystore
 !debug.keystore
+.kotlin/

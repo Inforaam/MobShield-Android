@@ -16,8 +16,8 @@
 
 package io.mobshield.gradle
 
-import com.android.build.gradle.AppExtension
-import com.android.build.gradle.LibraryExtension
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -56,7 +56,7 @@ class MobShieldPlugin : Plugin<Project> {
             task.expectedPackageName.set(
                 project.provider {
                     extension.expectedPackageName.ifBlank {
-                        project.extensions.getByType(AppExtension::class.java).defaultConfig.applicationId
+                        project.extensions.getByType(ApplicationExtension::class.java).defaultConfig.applicationId
                             ?: ""
                     }
                 },

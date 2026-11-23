@@ -13,12 +13,12 @@ mobshield {
 
 android {
     namespace = "com.mobshield.stub"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.mobshield.stub"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
     }

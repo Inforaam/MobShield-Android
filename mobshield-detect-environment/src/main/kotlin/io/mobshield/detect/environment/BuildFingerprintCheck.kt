@@ -60,19 +60,25 @@ class BuildFingerprintCheck(
         return ScanHit(matched = matched, fingerprint = snapshot.fingerprint)
     }
 
-    data class ScanHit(val matched: List<String>, val fingerprint: String)
+    data class ScanHit(
+        val matched: List<String>,
+        val fingerprint: String,
+    )
 
     companion object {
         fun defaultSnapshot(): BuildSnapshot {
             val buildClass = Class.forName("android.os.Build")
 
-            fun field(name: String): String {
-                return try {
-                    buildClass.getField(name).get(null)?.toString().orEmpty()
+            fun field(name: String): String =
+                try {
+                    buildClass
+                        .getField(name)
+                        .get(null)
+                        ?.toString()
+                        .orEmpty()
                 } catch (_: Exception) {
                     ""
                 }
-            }
             return BuildSnapshot(
                 fingerprint = field("FINGERPRINT"),
                 manufacturer = field("MANUFACTURER"),

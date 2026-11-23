@@ -30,5 +30,8 @@ object WaitingForDebugger {
         return ScanHit(waiting = waiting, connected = connected)
     }
 
-    data class ScanHit(val waiting: Boolean, val connected: Boolean)
+    data class ScanHit(
+        val waiting: Boolean,
+        val connected: Boolean,
+    )
 }

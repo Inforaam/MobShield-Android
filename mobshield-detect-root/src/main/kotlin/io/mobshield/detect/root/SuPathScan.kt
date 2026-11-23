@@ -77,5 +77,7 @@ object SuPathScan {
         return ScanHit(paths.first())
     }
 
-    data class ScanHit(val path: String)
+    data class ScanHit(
+        val path: String,
+    )
 }

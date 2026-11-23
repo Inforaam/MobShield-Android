@@ -51,7 +51,5 @@ internal object DigestUtil {
         }
     }
 
-    private fun formatHex(bytes: ByteArray): String {
-        return bytes.joinToString("") { byte -> "%02x".format(byte) }
-    }
+    private fun formatHex(bytes: ByteArray): String = bytes.joinToString("") { byte -> "%02x".format(byte) }
 }

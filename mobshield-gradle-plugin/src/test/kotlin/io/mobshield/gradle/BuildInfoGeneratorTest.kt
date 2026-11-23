@@ -20,9 +20,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 class BuildInfoGeneratorTest {
+    @get:Rule
+    val temp = TemporaryFolder()
+
     @Test
     fun generate_producesADifferentBuildIdPerSeed() {
         val first = BuildInfoGenerator.generate(request(seed = "a".repeat(64)))
@@ -64,7 +69,7 @@ class BuildInfoGeneratorTest {
 
     @Test
     fun shouldSkipGeneration_whenFingerprintMatches() {
-        val dir = createTempDir()
+        val dir = temp.newFolder()
         val header = dir.resolve("mobshield_buildinfo.h")
         val inputs = dir.resolve("inputs.fingerprint")
         val result = BuildInfoGenerator.generate(request())

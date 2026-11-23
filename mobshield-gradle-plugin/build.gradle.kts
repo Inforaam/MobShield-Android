@@ -15,15 +15,14 @@
  */
 
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.plugins.jvm.JvmTestSuite
 
 plugins {
     `java-gradle-plugin`
-    kotlin("jvm") version "2.0.21"
+    kotlin("jvm") version "2.4.21"
     `jvm-test-suite`
-    id("com.vanniktech.maven.publish") version "0.30.0"
+    id("com.vanniktech.maven.publish") version "0.37.0"
 }
 
 group = findProperty("GROUP") as String? ?: "io.mobshield"
@@ -56,14 +55,15 @@ kotlin {
 
 dependencies {
     implementation(gradleApi())
-    compileOnly("com.android.tools.build:gradle:8.5.2")
+    // Only the public DSL interfaces (com.android.build.api.dsl), which AGP 8 and 9 both provide.
+    compileOnly("com.android.tools.build:gradle-api:9.5.1")
     testImplementation("junit:junit:4.13.2")
     testImplementation(gradleTestKit())
 }
 
 testing {
     suites {
-        val functionalTest by registering(JvmTestSuite::class) {
+        register<JvmTestSuite>("functionalTest") {
             useJUnit()
             dependencies {
                 implementation(project())
@@ -126,7 +126,7 @@ extensions.configure<MavenPublishBaseExtension> {
             url.set("https://github.com/mobshield/mobshield/tree/main")
         }
     }
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    publishToMavenCentral(automaticRelease = true)
     val signingConfigured =
         listOf("signingInMemoryKey", "signing.keyId", "SIGNING_KEY").any {
             findProperty(it) != null || System.getenv(it) != null

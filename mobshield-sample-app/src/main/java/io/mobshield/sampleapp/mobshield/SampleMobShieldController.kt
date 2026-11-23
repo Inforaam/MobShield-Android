@@ -39,7 +39,8 @@ import kotlinx.coroutines.withContext
 object SampleMobShieldController {
     fun buildConfig(prefs: SamplePreferences): MobShieldConfig {
         val builder =
-            MobShieldConfig.builder()
+            MobShieldConfig
+                .builder()
                 .expectedPackageId(prefs.expectedPackageId)
                 .allowDeveloperSignals(prefs.allowDeveloperSignals)
                 .allowedInstallSources(MobShieldConfig.DEFAULT_ALLOWED_INSTALL_SOURCES)

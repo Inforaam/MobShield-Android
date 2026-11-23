@@ -36,7 +36,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class SampleViewModel(application: Application) : AndroidViewModel(application) {
+class SampleViewModel(
+    application: Application,
+) : AndroidViewModel(application) {
     private val _prefs = MutableStateFlow(SamplePreferences())
     val prefs: StateFlow<SamplePreferences> = _prefs.asStateFlow()
 

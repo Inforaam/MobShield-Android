@@ -63,8 +63,8 @@ object MobShield {
 
     /** Returns the latest posture snapshot. */
     @JvmStatic
-    fun getState(): MobShieldState {
-        return engineRef.get()?.getState()
+    fun getState(): MobShieldState =
+        engineRef.get()?.getState()
             ?: MobShieldState(
                 riskLevel = RiskLevel.NONE,
                 activeThreats = emptyList(),
@@ -72,7 +72,6 @@ object MobShield {
                 signalSetVersion = SIGNAL_SET_VERSION,
                 running = false,
             )
-    }
 
     /** Events from the most recent completed scan wave. */
     @JvmStatic

@@ -12,5 +12,9 @@ indent_size = 4
 max_line_length = 120
 ktlint_function_naming_ignore_when_annotated_with = Composable
 
+[*.kts]
+# Build scripts read catalog values as libs.versions.x.get().toInt(); keep such chains on one line.
+ktlint_chain_method_rule_force_multiline_when_chain_operator_count_greater_or_equal_than = 5
+
 [*.md]
 trim_trailing_whitespace = false

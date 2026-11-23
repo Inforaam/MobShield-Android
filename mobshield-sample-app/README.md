@@ -4,9 +4,9 @@ Integration reference for `mobshield-sample-app`: Compose UI, all detection modu
 
 ## Prerequisites
 
-- Android Studio Ladybug or newer
+- An Android Studio version that supports Android Gradle Plugin 9.5
 - JDK 17
-- Android SDK 34
+- Android SDK Platform 37.2
 
 ## Run in under 15 minutes
 

@@ -44,6 +44,10 @@ class ApkChecksumCheck(
     )
 
     companion object {
+        // TYPE_WHOLE_SHA256 is deprecated because the platform does not enforce it, but it is still
+        // computed on request, and it is the plain file SHA-256 that `expectedApkSha256` pins. The
+        // Merkle-root checksum types would need a different expected value.
+        @Suppress("DEPRECATION")
         fun requestWholeApkSha256(
             packageManager: PackageManager,
             packageName: String,
@@ -51,7 +55,9 @@ class ApkChecksumCheck(
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                 return null
             }
-            val result = java.util.concurrent.atomic.AtomicReference<String?>()
+            val result =
+                java.util.concurrent.atomic
+                    .AtomicReference<String?>()
             val latch = java.util.concurrent.CountDownLatch(1)
             val listener =
                 PackageManager.OnChecksumsReadyListener { checksums ->

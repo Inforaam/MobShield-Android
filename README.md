@@ -74,9 +74,16 @@ freeRASP is ahead on cross-platform framework support and a few extra checks, su
 
 ## Requirements
 
+To use MobShield in an app:
+
+- minSdk 24 or higher
+- Kotlin 2.1 or later, if the app is written in Kotlin
+
+To build MobShield from source:
+
 - JDK 17+
-- Android SDK 34
-- Gradle 8.7+ (wrapper included)
+- Android SDK Platform 37.2 and Build-Tools 36.0.0
+- Gradle 9.9.2 (wrapper included) and Android Gradle Plugin 9.5
 - NDK **28.0.13004108** (via SDK Manager; required for **16 KB page size** / Play compliance)
 
 Native modules are built with `ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON` and 16 KB ELF linker alignment. Rebuild and publish a new tag after upgrading the NDK.
