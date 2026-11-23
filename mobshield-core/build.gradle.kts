@@ -7,7 +7,8 @@ plugins {
 val mobshieldVersion: String =
     findProperty("VERSION_NAME") as String?
         ?: findProperty("mobshield.version") as String?
-        ?: "0.1.0"
+        ?: System.getenv("VERSION")?.removePrefix("v")
+        ?: "0.0.0-SNAPSHOT"
 val defaultGeneratedIncludeDir = layout.buildDirectory.dir("generated/mobshield/include").get().asFile
 
 tasks.register("generateMobShieldBuildInfo") {

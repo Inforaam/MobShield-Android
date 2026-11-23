@@ -100,20 +100,7 @@ class IntegrityDetectionModule(
         )
     }
 
-    private fun scanInstaller(): List<Signal> {
-        val hit = installerCheck.scan() ?: return emptyList()
-        return listOf(
-            IntegritySignalDefaults.buildSignal(
-                IntegritySignalDefaults.INSTALLER,
-                mapOf(
-                    "installer" to (hit.installer ?: "null"),
-                    "allowed" to hit.allowed.joinToString(","),
-                ),
-                detectionTuning,
-                SignalTuning(weight = 25, confidence = 45),
-            ),
-        )
-    }
+    private fun scanInstaller(): List<Signal> = installerSignals(installerCheck.scan(), detectionTuning)
 
     private fun scanApkChecksum(): List<Signal> {
         val hit = apkChecksumCheck.scan() ?: return emptyList()
@@ -162,5 +149,24 @@ class IntegrityDetectionModule(
         const val MODULE_NAME = "integrity"
         const val CRITICALITY = 100
         val DEFAULT_SCAN_TIMEOUT_MS = TimeUnit.MILLISECONDS.toMillis(100)
+
+        internal fun installerSignals(
+            hit: InstallerOriginCheck.ScanHit?,
+            tuning: Map<String, SignalTuning>,
+        ): List<Signal> {
+            if (hit == null) {
+                return emptyList()
+            }
+            return listOf(
+                IntegritySignalDefaults.buildSignal(
+                    IntegritySignalDefaults.INSTALLER,
+                    mapOf(
+                        "installer" to (hit.installer ?: "null"),
+                        "allowed" to hit.allowed.joinToString(","),
+                    ),
+                    tuning,
+                ),
+            )
+        }
     }
 }

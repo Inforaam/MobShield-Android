@@ -68,6 +68,17 @@ class BuildInfoGeneratorTest {
     }
 
     @Test
+    fun generate_writesLibraryVersion() {
+        val result = BuildInfoGenerator.generate(request().copy(libraryVersion = "1.2.3"))
+        assertTrue(result.headerContent.contains("#define MOBSHIELD_VERSION \"1.2.3\""))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun generate_rejectsVersionThatWouldBreakTheHeader() {
+        BuildInfoGenerator.generate(request().copy(libraryVersion = "1.0\" evil"))
+    }
+
+    @Test
     fun shouldSkipGeneration_whenFingerprintMatches() {
         val dir = temp.newFolder()
         val header = dir.resolve("mobshield_buildinfo.h")

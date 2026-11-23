@@ -53,6 +53,13 @@ kotlin {
     }
 }
 
+// BuildInfoGenerator reads this to write MOBSHIELD_VERSION into the generated header.
+tasks.jar {
+    manifest {
+        attributes("Implementation-Version" to project.version)
+    }
+}
+
 dependencies {
     implementation(gradleApi())
     // Only the public DSL interfaces (com.android.build.api.dsl), which AGP 8 and 9 both provide.
