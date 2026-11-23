@@ -53,7 +53,8 @@ tables below. Exact weights/confidences live in each module's `*SignalDefaults.k
 `android.automation.framework` (→ `AUTOMATION`)
 
 ### Integrity — module `integrity`, threats `APP_INTEGRITY` / `UNOFFICIAL_STORE`
-`android.integrity.signature`, `android.integrity.package_id`, `android.integrity.apk_checksum`,
+`android.integrity.signature`, `android.integrity.package_id`, `android.integrity.apk_path`,
+`android.integrity.apk_checksum`,
 `android.integrity.native_lib_checksum`, `android.integrity.native_self_check`,
 `android.integrity.check_unavailable`,
 `android.store.installer` (→ `UNOFFICIAL_STORE`)

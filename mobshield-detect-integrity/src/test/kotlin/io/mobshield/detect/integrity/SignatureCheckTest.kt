@@ -15,6 +15,7 @@
  */
 package io.mobshield.detect.integrity
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -60,5 +61,55 @@ class SignatureCheckTest {
                 certificateDigestsProvider = { listOf(mismatchDigest) },
             )
         assertNotNull(check.scan())
+    }
+
+    @Test
+    fun scan_apkSignerDiffersFromPackageManager_returnsHit() {
+        val check =
+            SignatureCheck(
+                packageName = "io.example",
+                expectedSigners = expected,
+                certificateDigestsProvider = { expected },
+                apkCertificateDigestsProvider = { listOf(mismatchDigest) },
+            )
+        val hit = check.scan()
+        assertEquals("apk_signer_mismatch", hit?.reason)
+        assertEquals(listOf(mismatchDigest), hit?.actual)
+    }
+
+    @Test
+    fun scan_apkSignerMatches_returnsNull() {
+        val check =
+            SignatureCheck(
+                packageName = "io.example",
+                expectedSigners = expected,
+                certificateDigestsProvider = { expected },
+                apkCertificateDigestsProvider = { listOf(otherDigest, expectedDigest.uppercase()) },
+            )
+        assertNull(check.scan())
+    }
+
+    @Test
+    fun scan_noApkSigningBlock_reliesOnPackageManager() {
+        val check =
+            SignatureCheck(
+                packageName = "io.example",
+                expectedSigners = expected,
+                certificateDigestsProvider = { expected },
+                apkCertificateDigestsProvider = { null },
+            )
+        assertNull(check.scan())
+    }
+
+    @Test
+    fun scan_packageManagerMismatch_isReportedFirst() {
+        val check =
+            SignatureCheck(
+                packageName = "io.example",
+                expectedSigners = expected,
+                certificateDigestsProvider = { listOf(mismatchDigest) },
+                apkCertificateDigestsProvider = { error("must not be called") },
+            )
+        assertEquals("mismatch", check.scan()?.reason)
     }
 }
