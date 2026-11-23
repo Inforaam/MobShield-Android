@@ -53,11 +53,15 @@ android {
 }
 
 dependencies {
-    implementation(project(":mobshield"))
-    // The :mobshield umbrella pulls core in as compileOnly (bundled into the fat AAR for external
-    // consumers), so it does not export io.mobshield.core.* on the compile classpath. This app
-    // references those types directly, so depend on core explicitly.
+    // Same modules as a Maven Central install. The :mobshield umbrella is not used here: it takes
+    // the modules as compileOnly and only bundles them into its JitPack AAR, so a project
+    // dependency on it would leave the detectors out of this APK.
     implementation(project(":mobshield-core"))
+    implementation(project(":mobshield-detect-root"))
+    implementation(project(":mobshield-detect-hooks"))
+    implementation(project(":mobshield-detect-debugger"))
+    implementation(project(":mobshield-detect-environment"))
+    implementation(project(":mobshield-detect-integrity"))
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

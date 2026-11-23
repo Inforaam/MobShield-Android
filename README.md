@@ -157,6 +157,8 @@ IntegrityDetectionRegistrar.register(context, config)
 MobShield.start(context, config, listener)
 ```
 
+Each registrar ships in its detector module, so register only the detectors you added as dependencies. The JitPack umbrella artifact contains all five.
+
 Read the current posture at any time, or stop scanning:
 
 ```kotlin
