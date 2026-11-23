@@ -23,18 +23,23 @@ package io.mobshield.core
  * @param terminationPolicy Optional process exit policy.
  * @param thresholds Per-threat score cutoffs overriding spec defaults.
  * @param allowDeveloperSignals Emit DEVELOPER_MODE and ADB_ENABLED events when true.
- * @param expectedPackageId Optional package name override for integrity checks.
+ * @param expectedPackageId Optional expected package name. When set, a different running package
+ *   name is reported as an integrity signal.
  * @param periodicIntervalSec Optional rescan interval; null disables periodic scans.
  * @param detectionTuning Per-signal weight/confidence overrides keyed by signal name.
  * @param allowedInstallSources Package installer IDs treated as official (Play Store, etc.).
  * @param expectedApkSha256 Optional whole-APK SHA-256 hex for [PackageManager.requestChecksums].
- * @param expectedNativeLibSha256 Optional on-disk SHA-256 hex for `libmobshieldcore.so`.
+ * @param expectedNativeLibSha256 Optional SHA-256 hex for `libmobshieldcore.so`, used for any ABI
+ *   without an entry in [expectedNativeLibSha256ByAbi].
  * @param signalGroups Correlation groups keyed by signal name; signals in one group are combined
  *   with diminishing returns instead of added. Defaults to [DefaultSignalGroups.map]; pass an empty
  *   map to add every signal independently, as releases up to 1.0.10 did.
  * @param terminateOn Threat types allowed to end the process under [terminationPolicy]. Defaults to
  *   every type. Remove a type, for example [ThreatType.PRIVILEGED_ACCESS], to keep reporting it
  *   without ever terminating for it. See `docs/termination.md`.
+ * @param expectedNativeLibSha256ByAbi Optional SHA-256 hex for `libmobshieldcore.so` keyed by ABI
+ *   name, for example `arm64-v8a`. Each ABI ships a different library, so one digest cannot match
+ *   them all.
  */
 data class MobShieldConfig(
     val detectOnly: Boolean = true,
@@ -50,11 +55,16 @@ data class MobShieldConfig(
     val expectedNativeLibSha256: String? = null,
     val signalGroups: Map<String, String> = DefaultSignalGroups.map,
     val terminateOn: Set<ThreatType> = ThreatType.entries.toSet(),
+    val expectedNativeLibSha256ByAbi: Map<String, String> = emptyMap(),
 ) {
     init {
         validateSigners(expectedSigners)
         expectedApkSha256?.let { validateSha256Hex("expectedApkSha256", it) }
         expectedNativeLibSha256?.let { validateSha256Hex("expectedNativeLibSha256", it) }
+        expectedNativeLibSha256ByAbi.forEach { (abi, digest) ->
+            require(abi.isNotBlank()) { "expectedNativeLibSha256ByAbi keys must not be blank" }
+            validateSha256Hex("expectedNativeLibSha256ByAbi", digest)
+        }
         periodicIntervalSec?.let {
             require(it > 0) { "periodicIntervalSec must be positive" }
         }
@@ -82,6 +92,7 @@ data class MobShieldConfig(
         private var expectedNativeLibSha256: String? = null
         private var signalGroups: Map<String, String> = DefaultSignalGroups.map
         private var terminateOn: Set<ThreatType> = ThreatType.entries.toSet()
+        private var expectedNativeLibSha256ByAbi: Map<String, String> = emptyMap()
 
         fun detectOnly(value: Boolean) = apply { detectOnly = value }
 
@@ -109,6 +120,8 @@ data class MobShieldConfig(
 
         fun terminateOn(value: Set<ThreatType>) = apply { terminateOn = value }
 
+        fun expectedNativeLibSha256ByAbi(value: Map<String, String>) = apply { expectedNativeLibSha256ByAbi = value }
+
         fun build(): MobShieldConfig =
             MobShieldConfig(
                 detectOnly = detectOnly,
@@ -124,6 +137,7 @@ data class MobShieldConfig(
                 expectedNativeLibSha256 = expectedNativeLibSha256,
                 signalGroups = signalGroups,
                 terminateOn = terminateOn,
+                expectedNativeLibSha256ByAbi = expectedNativeLibSha256ByAbi,
             )
     }
 

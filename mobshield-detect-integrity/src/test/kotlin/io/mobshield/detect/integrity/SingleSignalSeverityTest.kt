@@ -38,6 +38,8 @@ class SingleSignalSeverityTest {
             Expected(IntegritySignalDefaults.INSTALLER, score = 11, severity = Severity.MEDIUM),
             Expected(IntegritySignalDefaults.APK_CHECKSUM, score = 76, severity = Severity.HIGH),
             Expected(IntegritySignalDefaults.NATIVE_LIB_CHECKSUM, score = 68, severity = Severity.HIGH),
+            Expected(IntegritySignalDefaults.PACKAGE_ID, score = 76, severity = Severity.HIGH),
+            Expected(IntegritySignalDefaults.CHECK_UNAVAILABLE, score = 12, severity = Severity.LOW),
         )
 
     @Test

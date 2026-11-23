@@ -15,46 +15,104 @@
  */
 package io.mobshield.detect.integrity
 
+import io.mobshield.detect.integrity.NativeLibChecksumCheck.NativeLibrary
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.nio.file.Files
 
 class NativeLibChecksumCheckTest {
     private val digest = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    private val arm64Digest = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    private val other = "abababababababababababababababababababababababababababababababab"
+
+    private fun library(abi: String? = "arm64-v8a") =
+        NativeLibrary(abi = abi, path = "base.apk!/lib") { error("unused") }
 
     @Test
-    fun scan_matchingFile_returnsNull() {
-        val temp = Files.createTempFile("libmobshieldcore", ".so").toFile()
-        temp.writeBytes(byteArrayOf(1, 2, 3))
+    fun scan_notConfigured_doesNotLookForTheLibrary() {
+        val check =
+            NativeLibChecksumCheck(
+                expectedNativeLibSha256 = null,
+                libraryProvider = { error("must not be called") },
+            )
+        assertNull(check.scan())
+    }
+
+    @Test
+    fun scan_matchingDigest_returnsNull() {
         val check =
             NativeLibChecksumCheck(
                 expectedNativeLibSha256 = digest,
-                libraryFileProvider = { temp },
+                libraryProvider = { library() },
                 digestComputer = { digest },
             )
         assertNull(check.scan())
-        temp.delete()
     }
 
     @Test
-    fun scan_mismatch_returnsHit() {
-        val temp = Files.createTempFile("libmobshieldcore", ".so").toFile()
+    fun scan_mismatch_reportsPathAndAbi() {
         val check =
             NativeLibChecksumCheck(
                 expectedNativeLibSha256 = digest,
-                libraryFileProvider = { temp },
-                digestComputer = { "abababababababababababababababababababababababababababababababab" },
+                libraryProvider = { library() },
+                digestComputer = { other },
             )
-        assertNotNull(check.scan())
-        temp.delete()
+        val hit = check.scan()
+        assertEquals("mismatch", hit?.reason)
+        assertEquals("arm64-v8a", hit?.abi)
+        assertEquals("base.apk!/lib", hit?.path)
     }
 
     @Test
-    fun coreLibraryFile_resolvesUnderNativeDir() {
-        val file = NativeLibChecksumCheck.coreLibraryFile("/data/app/lib")
-        assertNotNull(file)
-        assertEquals("libmobshieldcore.so", file?.name)
+    fun scan_prefersTheDigestForTheLoadedAbi() {
+        val check =
+            NativeLibChecksumCheck(
+                expectedNativeLibSha256 = digest,
+                expectedByAbi = mapOf("arm64-v8a" to arm64Digest),
+                libraryProvider = { library() },
+                digestComputer = { arm64Digest },
+            )
+        assertNull(check.scan())
+    }
+
+    @Test
+    fun scan_fallsBackToTheSingleDigestForOtherAbis() {
+        val check =
+            NativeLibChecksumCheck(
+                expectedNativeLibSha256 = digest,
+                expectedByAbi = mapOf("x86_64" to arm64Digest),
+                libraryProvider = { library() },
+                digestComputer = { other },
+            )
+        assertEquals(digest, check.scan()?.expected)
+    }
+
+    @Test
+    fun scan_abiWithoutAnyExpectedDigest_isSkipped() {
+        val check =
+            NativeLibChecksumCheck(
+                expectedNativeLibSha256 = null,
+                expectedByAbi = mapOf("x86_64" to arm64Digest),
+                libraryProvider = { library() },
+                digestComputer = { other },
+            )
+        assertNull(check.scan())
+    }
+
+    @Test
+    fun scan_libraryNotFound_reportsMissingFile() {
+        val check = NativeLibChecksumCheck(expectedNativeLibSha256 = digest, libraryProvider = { null })
+        assertEquals("missing_file", check.scan()?.reason)
+    }
+
+    @Test
+    fun scan_unreadable_reportsUnreadable() {
+        val check =
+            NativeLibChecksumCheck(
+                expectedNativeLibSha256 = digest,
+                libraryProvider = { library() },
+                digestComputer = { null },
+            )
+        assertEquals("unreadable", check.scan()?.reason)
     }
 }

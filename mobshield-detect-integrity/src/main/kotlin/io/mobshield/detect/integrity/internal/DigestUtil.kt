@@ -28,8 +28,12 @@ internal object DigestUtil {
         if (!file.isFile || !file.canRead()) {
             return null
         }
+        return file.inputStream().use(::sha256HexStream)
+    }
+
+    fun sha256HexStream(stream: InputStream): String {
         val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { stream -> digest.updateStream(stream) }
+        digest.updateStream(stream)
         return formatHex(digest.digest())
     }
 

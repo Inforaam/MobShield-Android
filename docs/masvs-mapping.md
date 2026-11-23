@@ -11,7 +11,7 @@ itself make an app compliant, and MASVS-RESILIENCE is defense in depth rather th
 | MASVS control | Intent | MobShield module | Signals (see [detection notes](detection)) |
 |---------------|--------|------------------|--------------------------------------------|
 | MASVS-RESILIENCE-1 | The app validates the integrity of the platform | `mobshield-detect-root`, `mobshield-detect-environment` | Root: `android.root.*` (mount namespace, Magisk UDS, overlayfs, Zygisk maps, KernelSU). Environment: `android.env.*` (QEMU properties and devices, Goldfish CPU, build fingerprint, sensor count) |
-| MASVS-RESILIENCE-2 | The app implements anti-tampering mechanisms | `mobshield-detect-integrity` | `android.integrity.signature`, `android.integrity.apk_checksum`, `android.integrity.native_lib_checksum`, `android.store.installer` |
+| MASVS-RESILIENCE-2 | The app implements anti-tampering mechanisms | `mobshield-detect-integrity` | `android.integrity.signature`, `android.integrity.package_id`, `android.integrity.apk_checksum`, `android.integrity.native_lib_checksum`, `android.integrity.check_unavailable`, `android.store.installer` |
 | MASVS-RESILIENCE-4 | The app implements anti-dynamic analysis techniques | `mobshield-detect-hooks`, `mobshield-detect-debugger`, `mobshield-detect-environment` | Hooks: `common.hook.*`, `android.hook.*` (Frida maps, port, threads, Xposed and LSPosed). Debugger: `android.debug.*` (TracerPid, ptrace, timing, debuggable flag, waiting for debugger). Automation: `android.automation.framework` |
 
 ## Not covered
