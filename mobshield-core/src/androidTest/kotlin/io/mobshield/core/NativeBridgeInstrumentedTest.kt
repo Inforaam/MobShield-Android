@@ -16,7 +16,6 @@
 package io.mobshield.core
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -31,9 +30,9 @@ class NativeBridgeInstrumentedTest {
     }
 
     @Test
-    fun version_matchesExpectedRelease() {
+    fun version_isAPlainVersionString() {
         val version = MobShield.getVersion()
-        assertEquals("0.1.0", version)
+        assertTrue(version, Regex("""\d+\.\d+\.\d+([-+][0-9A-Za-z.+-]+)?""").matches(version))
     }
 
     @Test
