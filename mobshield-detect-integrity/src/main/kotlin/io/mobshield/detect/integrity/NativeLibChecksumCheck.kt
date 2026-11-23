@@ -16,38 +16,55 @@
 package io.mobshield.detect.integrity
 
 import io.mobshield.detect.integrity.internal.DigestUtil
-import java.io.File
+import java.io.InputStream
 
 class NativeLibChecksumCheck(
     private val expectedNativeLibSha256: String?,
-    private val libraryFileProvider: () -> File?,
-    private val digestComputer: (File) -> String? = { DigestUtil.sha256HexFile(it) },
+    private val expectedByAbi: Map<String, String> = emptyMap(),
+    private val libraryProvider: () -> NativeLibrary?,
+    private val digestComputer: (NativeLibrary) -> String? = { library ->
+        runCatching { library.open().use(DigestUtil::sha256HexStream) }.getOrNull()
+    },
 ) {
     fun scan(): ScanHit? {
-        val expected = expectedNativeLibSha256 ?: return null
-        val file = libraryFileProvider() ?: return ScanHit(expected = expected, actual = null, reason = "missing_file")
-        val actual = digestComputer(file) ?: return ScanHit(expected = expected, actual = null, reason = "unreadable")
+        if (expectedNativeLibSha256 == null && expectedByAbi.isEmpty()) {
+            return null
+        }
+        val library =
+            libraryProvider()
+                ?: return ScanHit(expected = expectedNativeLibSha256, actual = null, reason = "missing_file")
+        val expected = library.abi?.let(expectedByAbi::get) ?: expectedNativeLibSha256 ?: return null
+        val actual =
+            digestComputer(library)
+                ?: return ScanHit(expected = expected, actual = null, reason = "unreadable", path = library.path)
         if (DigestUtil.hexMatches(expected, actual)) {
             return null
         }
-        return ScanHit(expected = expected, actual = actual, reason = "mismatch", path = file.absolutePath)
+        return ScanHit(
+            expected = expected,
+            actual = actual,
+            reason = "mismatch",
+            path = library.path,
+            abi = library.abi,
+        )
     }
 
+    /** A native library extracted on disk or stored inside an APK. [path] is used as evidence only. */
+    class NativeLibrary(
+        val abi: String?,
+        val path: String,
+        val open: () -> InputStream,
+    )
+
     data class ScanHit(
-        val expected: String,
+        val expected: String?,
         val actual: String?,
         val reason: String,
         val path: String? = null,
+        val abi: String? = null,
     )
 
     companion object {
         const val CORE_LIBRARY_NAME = "libmobshieldcore.so"
-
-        fun coreLibraryFile(nativeLibraryDir: String?): File? {
-            if (nativeLibraryDir.isNullOrBlank()) {
-                return null
-            }
-            return File(nativeLibraryDir, CORE_LIBRARY_NAME)
-        }
     }
 }

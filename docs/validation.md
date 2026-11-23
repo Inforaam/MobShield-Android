@@ -53,8 +53,9 @@ tables below. Exact weights/confidences live in each module's `*SignalDefaults.k
 `android.automation.framework` (→ `AUTOMATION`)
 
 ### Integrity — module `integrity`, threats `APP_INTEGRITY` / `UNOFFICIAL_STORE`
-`android.integrity.signature`, `android.integrity.apk_checksum`,
+`android.integrity.signature`, `android.integrity.package_id`, `android.integrity.apk_checksum`,
 `android.integrity.native_lib_checksum`, `android.integrity.native_self_check`,
+`android.integrity.check_unavailable`,
 `android.store.installer` (→ `UNOFFICIAL_STORE`)
 
 ## Environment baselines
@@ -65,8 +66,9 @@ tables below. Exact weights/confidences live in each module's `*SignalDefaults.k
 - **Situational:** `android.debug.*` fires when a debugger/ADB is attached (e.g. launching from
   Android Studio); `android.env.*` fires on an **emulator** (expected — the emulator *is* an
   emulator); `android.store.installer` fires for non-Play installs (sideloaded/debug); integrity
-  signals fire only when their anchors (`expectedSigners`, `expectedApkSha256`,
-  `expectedNativeLibSha256`) are configured. Validate the clean baseline on a physical Play install
+  signals fire only when their anchors (`expectedSigners`, `expectedPackageId`,
+  `expectedApkSha256`, `expectedNativeLibSha256` / `expectedNativeLibSha256ByAbi`) are configured.
+  `android.integrity.check_unavailable` must not fire on a clean install with correct anchors. Validate the clean baseline on a physical Play install
   launched without a debugger.
 
 ### Compromised environment (expected positive detections)
@@ -75,5 +77,5 @@ tables below. Exact weights/confidences live in each module's `*SignalDefaults.k
 | Rooted (Magisk / KernelSU / Zygisk) | ≥1 of `android.root.*` | `PRIVILEGED_ACCESS` |
 | `frida-server` / gadget / LSPosed / Xposed | ≥1 of `common.hook.frida_maps`, `android.hook.frida_port`, `android.hook.thread_name`, `android.hook.xposed` | `HOOK_FRAMEWORK` |
 | Debugger / ADB attached | ≥1 of `android.debug.tracerpid`, `android.debug.ptrace` | `DEBUGGER` |
-| Re-signed / repackaged APK (anchors configured) | `android.integrity.signature` and/or `android.integrity.apk_checksum` | `APP_INTEGRITY` |
+| Re-signed / repackaged APK (anchors configured) | `android.integrity.signature`, `android.integrity.package_id` and/or `android.integrity.apk_checksum` | `APP_INTEGRITY` |
 | Tampered native core | `android.integrity.native_self_check` | `APP_INTEGRITY` (critical) |

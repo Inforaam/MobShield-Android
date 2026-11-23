@@ -77,4 +77,21 @@ class MobShieldConfigTest {
     fun threatThreshold_warningAboveCritical_rejected() {
         ThreatThreshold(warning = 80, critical = 50)
     }
+
+    @Test
+    fun builder_setsNativeLibDigestsByAbi() {
+        val digest = "a".repeat(64)
+        val config = MobShieldConfig.builder().expectedNativeLibSha256ByAbi(mapOf("arm64-v8a" to digest)).build()
+        assertEquals(mapOf("arm64-v8a" to digest), config.expectedNativeLibSha256ByAbi)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun init_rejectsInvalidNativeLibDigestForAbi() {
+        MobShieldConfig(expectedNativeLibSha256ByAbi = mapOf("arm64-v8a" to "not-hex"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun init_rejectsBlankAbi() {
+        MobShieldConfig(expectedNativeLibSha256ByAbi = mapOf(" " to "a".repeat(64)))
+    }
 }

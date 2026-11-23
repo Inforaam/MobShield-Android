@@ -51,6 +51,7 @@ class ApkChecksumCheck(
         fun requestWholeApkSha256(
             packageManager: PackageManager,
             packageName: String,
+            timeoutMs: Long = DEFAULT_TIMEOUT_MS,
         ): String? {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                 return null
@@ -76,11 +77,15 @@ class ApkChecksumCheck(
                     emptyList(),
                     listener,
                 )
-                latch.await(2, java.util.concurrent.TimeUnit.SECONDS)
+                if (!latch.await(timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                    return null
+                }
             } catch (_: Exception) {
                 return null
             }
             return result.get()
         }
+
+        const val DEFAULT_TIMEOUT_MS = 5_000L
     }
 }

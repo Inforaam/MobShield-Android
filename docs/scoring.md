@@ -126,7 +126,9 @@ default Android signal when it is the only signal of its threat type. It is enfo
 | **Integrity and store** (`APP_INTEGRITY` 50/80, `UNOFFICIAL_STORE` 20/50) | | | |
 | `android.integrity.signature` | 90 / 95 | 85 | CRITICAL |
 | `android.integrity.apk_checksum` | 85 / 90 | 76 | HIGH |
+| `android.integrity.package_id` | 85 / 90 | 76 | HIGH |
 | `android.integrity.native_lib_checksum` | 80 / 85 | 68 | HIGH |
+| `android.integrity.check_unavailable` | 30 / 40 | 12 | LOW |
 | `android.store.installer` | 25 / 45 | 11 | MEDIUM |
 
 What this means in practice:

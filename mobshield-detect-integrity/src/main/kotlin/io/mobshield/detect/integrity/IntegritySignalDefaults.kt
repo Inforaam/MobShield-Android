@@ -23,6 +23,10 @@ object IntegritySignalDefaults {
     const val INSTALLER = "android.store.installer"
     const val APK_CHECKSUM = "android.integrity.apk_checksum"
     const val NATIVE_LIB_CHECKSUM = "android.integrity.native_lib_checksum"
+    const val PACKAGE_ID = "android.integrity.package_id"
+
+    /** A configured check could not produce a result; evidence `checks` lists `check:reason` pairs. */
+    const val CHECK_UNAVAILABLE = "android.integrity.check_unavailable"
 
     private val defaults: Map<String, SignalTuning> =
         mapOf(
@@ -30,6 +34,8 @@ object IntegritySignalDefaults {
             INSTALLER to SignalTuning(weight = 25, confidence = 45),
             APK_CHECKSUM to SignalTuning(weight = 85, confidence = 90),
             NATIVE_LIB_CHECKSUM to SignalTuning(weight = 80, confidence = 85),
+            PACKAGE_ID to SignalTuning(weight = 85, confidence = 90),
+            CHECK_UNAVAILABLE to SignalTuning(weight = 30, confidence = 40),
         )
 
     fun buildSignal(
