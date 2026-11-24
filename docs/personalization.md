@@ -14,6 +14,10 @@ The plugin generates `mobshield_buildinfo.h` for MobShield's native code. The he
   `MOBSHIELD_AGGRESSIVE_ANTI_DEBUG`, from the `mobshield { }` block. The native code does not read
   these yet; the runtime integrity checks use the values you pass to `MobShieldConfig`.
 
+The plugin does not fill in the runtime integrity checks. Set those in `MobShieldConfig`; see
+[detection/android-integrity.md](detection/android-integrity.md#getting-the-values) for where to
+get each value.
+
 `mobshieldVerify` runs after `assemble`. It checks the APK's signing certificate against
 `expectedSigningCertSha256`, and checks that `libmobshieldcore.so` contains
 `MOBSHIELD_BUILD_ID=<this build's ID>`, which shows the library was compiled with this build's header.

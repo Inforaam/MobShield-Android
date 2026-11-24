@@ -99,6 +99,44 @@ MobShieldConfig.builder()
     .build()
 ```
 
+## Getting the values
+
+Take the values from a build installed the way your users get it. With Play App Signing, Play
+signs the APKs it installs with its app signing key, not your upload key, so a certificate read
+from your local build does not match.
+
+### From the running app
+
+`IntegrityAnchors.read(context)` returns the running app's package name, signing certificate
+digests, the `libmobshieldcore.so` digest for each ABI in the installed APKs, and the installer.
+`toConfigSnippet()` formats them as a `MobShieldConfig.builder()` call. It does file I/O, so call it
+off the main thread, for example from a debug menu in a build installed from a Play internal test
+track:
+
+```kotlin
+val anchors = withContext(Dispatchers.IO) { IntegrityAnchors.read(context) }
+Log.d("MobShield", anchors.toConfigSnippet())
+```
+
+A device only has the native library for its own ABI when Play delivers split APKs, so read it on
+one device per ABI, or take the digests from the bundle as shown below.
+
+### From the build outputs
+
+- **Signing certificate:** with Play App Signing, use the SHA-256 of the app signing key
+  certificate from Play Console (App integrity, App signing). Otherwise run
+  `apksigner verify --print-certs app-release.apk`. Remove the colons from the digest.
+- **Native library digests:** for each ABI you ship, hash the library in the bundle or APK:
+
+  ```bash
+  unzip -p app-release.aab base/lib/arm64-v8a/libmobshieldcore.so | shasum -a 256
+  ```
+
+  For an APK, the path is `lib/arm64-v8a/libmobshieldcore.so`.
+
+The native library digests change with each MobShield release, and the signer digest changes if you
+rotate your signing key. Update them when either changes.
+
 ## Registration
 
 ```kotlin

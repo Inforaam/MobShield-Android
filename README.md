@@ -178,6 +178,11 @@ val config = MobShieldConfig.builder()
     .build()
 ```
 
+To fill in the integrity values (`expectedSigners`, `expectedPackageId`,
+`expectedNativeLibSha256ByAbi`), see
+[docs/detection/android-integrity.md](docs/detection/android-integrity.md#getting-the-values). With
+Play App Signing, use Play's app signing certificate, not your upload key.
+
 Before turning termination on, read [docs/termination.md](docs/termination.md): termination needs a
 signal that is strong on its own, `terminateOn` limits which threat types can end the process, and a
 hooked app can block the exit call, so termination is a deterrent rather than a security boundary.
