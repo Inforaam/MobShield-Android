@@ -55,4 +55,42 @@ class InstallerOriginCheckTest {
         val event = SignalAggregator(MobShieldConfig()).aggregate(listOf(signal)).single()
         assertEquals(ThreatType.UNOFFICIAL_STORE, event.type)
     }
+
+    @Test
+    fun scan_allowedInstallerStartedByAnotherApp_returnsHit() {
+        val check =
+            InstallerOriginCheck(
+                allowedInstallSources = setOf("com.android.vending"),
+                installingPackageProvider = { "com.android.vending" },
+                initiatingPackageProvider = { "com.android.shell" },
+            )
+        assertEquals("com.android.shell", check.scan()?.initiating)
+    }
+
+    @Test
+    fun scan_initiatingMatchesInstallerOrIsAllowed_returnsNull() {
+        for (initiating in listOf(null, "com.android.vending", "com.allowed.store")) {
+            val check =
+                InstallerOriginCheck(
+                    allowedInstallSources = setOf("com.android.vending", "com.allowed.store"),
+                    installingPackageProvider = { "com.android.vending" },
+                    initiatingPackageProvider = { initiating },
+                )
+            assertNull(initiating, check.scan())
+        }
+    }
+
+    @Test
+    fun installerSignals_includeInitiatingWhenSet() {
+        val hit =
+            InstallerOriginCheck.ScanHit(
+                "com.android.vending",
+                listOf("com.android.vending"),
+                "com.android.shell",
+            )
+        val signal = IntegrityDetectionModule.installerSignals(hit, emptyMap()).single()
+        assertEquals("com.android.shell", signal.evidence["initiating"])
+        val plain = InstallerOriginCheck.ScanHit(null, listOf("com.android.vending"))
+        assertEquals(null, IntegrityDetectionModule.installerSignals(plain, emptyMap()).single().evidence["initiating"])
+    }
 }

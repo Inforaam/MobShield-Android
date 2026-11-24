@@ -19,13 +19,16 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.os.Build
+import io.mobshield.detect.integrity.internal.ApkSigningBlock
 import io.mobshield.detect.integrity.internal.DigestUtil
+import java.io.File
 import java.security.MessageDigest
 
 class SignatureCheck(
     private val packageName: String,
     private val expectedSigners: List<String>,
     private val certificateDigestsProvider: () -> List<String>,
+    private val apkCertificateDigestsProvider: () -> List<String>? = { null },
 ) {
     fun scan(): ScanHit? {
         if (expectedSigners.isEmpty()) {
@@ -36,11 +39,14 @@ class SignatureCheck(
             return ScanHit(expected = expectedSigners, actual = emptyList(), reason = "no_certificates")
         }
         val expected = expectedSigners.map(DigestUtil::normalizeHex).toSet()
-        val matched = digests.intersect(expected)
-        if (matched.isNotEmpty()) {
+        if (digests.intersect(expected).isEmpty()) {
+            return ScanHit(expected = expectedSigners, actual = digests.toList(), reason = "mismatch")
+        }
+        val apkDigests = apkCertificateDigestsProvider()?.map(DigestUtil::normalizeHex)?.toSet()
+        if (apkDigests.isNullOrEmpty() || apkDigests.intersect(expected).isNotEmpty()) {
             return null
         }
-        return ScanHit(expected = expectedSigners, actual = digests.toList(), reason = "mismatch")
+        return ScanHit(expected = expectedSigners, actual = apkDigests.toList(), reason = "apk_signer_mismatch")
     }
 
     data class ScanHit(
@@ -93,6 +99,15 @@ class SignatureCheck(
                 )
             val signatures = packageInfo.signatures ?: return emptyList()
             return digestSignatures(signatures)
+        }
+
+        /** Digests of the certificates in the APK's signing block that the platform verifies at [sdkInt]. */
+        fun apkCertificateDigests(
+            apk: File,
+            sdkInt: Int,
+        ): List<String>? {
+            val blocks = ApkSigningBlock.read(apk) ?: return null
+            return ApkSigningBlock.trustedCertificates(blocks, sdkInt)?.map(DigestUtil::sha256Hex)
         }
 
         private fun digestSignatures(signatures: Array<Signature>): List<String> {

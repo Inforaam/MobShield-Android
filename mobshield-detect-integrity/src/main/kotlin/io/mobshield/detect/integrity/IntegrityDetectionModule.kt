@@ -34,6 +34,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withTimeout
+import java.io.File
 
 class IntegrityDetectionModule(
     context: Context,
@@ -47,6 +48,7 @@ class IntegrityDetectionModule(
     private val packageManager = appContext.packageManager
 
     private val apkDigest = SuccessCache<String>()
+    private val apkSignerDigests = SuccessCache<List<String>>()
     private val nativeLibrary = SuccessCache<NativeLibChecksumCheck.NativeLibrary>()
     private val nativeLibDigest = SuccessCache<String>()
 
@@ -57,12 +59,26 @@ class IntegrityDetectionModule(
             certificateDigestsProvider = {
                 SignatureCheck.certificateDigests(packageManager, packageName)
             },
+            apkCertificateDigestsProvider = {
+                apkSignerDigests.get {
+                    appContext.applicationInfo.sourceDir?.let { sourceDir ->
+                        SignatureCheck.apkCertificateDigests(File(sourceDir), Build.VERSION.SDK_INT)
+                    }
+                }
+            },
+        )
+    private val apkPathCheck =
+        ApkPathCheck(
+            packageName = packageName,
+            sourceDirProvider = { appContext.applicationInfo.sourceDir },
+            mapsProvider = { File("/proc/self/maps").readLines().asSequence() },
         )
     private val packageIdCheck = PackageIdCheck(config.expectedPackageId, packageName)
     private val installerCheck =
         InstallerOriginCheck(
             allowedInstallSources = config.allowedInstallSources,
             installingPackageProvider = { readInstallingPackageName() },
+            initiatingPackageProvider = { readInitiatingPackageName() },
         )
     private val apkChecksumCheck =
         ApkChecksumCheck(
@@ -95,6 +111,7 @@ class IntegrityDetectionModule(
                 buildList {
                     if (config.expectedSigners.isNotEmpty()) {
                         add(async { runCheck(CHECK_SIGNATURE, scanTimeoutMs, ::scanSignature) })
+                        add(async { runCheck(CHECK_APK_PATH, scanTimeoutMs, ::scanApkPath) })
                     }
                     if (config.expectedPackageId != null) {
                         add(async { runCheck(CHECK_PACKAGE_ID, scanTimeoutMs, ::scanPackageId) })
@@ -120,6 +137,17 @@ class IntegrityDetectionModule(
                     "expectedCount" to hit.expected.size.toString(),
                     "actual" to hit.actual.joinToString(","),
                 ),
+                detectionTuning,
+            ),
+        )
+    }
+
+    private fun scanApkPath(): CheckResult {
+        val hit = apkPathCheck.scan() ?: return CheckResult.CLEAN
+        return CheckResult.of(
+            IntegritySignalDefaults.buildSignal(
+                IntegritySignalDefaults.APK_PATH,
+                mapOf("sourceDir" to hit.sourceDir, "mapped" to hit.mapped.joinToString(",")),
                 detectionTuning,
             ),
         )
@@ -190,6 +218,17 @@ class IntegrityDetectionModule(
             packageManager.getInstallerPackageName(packageName)
         }
 
+    private fun readInitiatingPackageName(): String? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                packageManager.getInstallSourceInfo(packageName).initiatingPackageName
+            } catch (_: PackageManager.NameNotFoundException) {
+                null
+            }
+        } else {
+            null
+        }
+
     internal class CheckResult(
         val signals: List<Signal>,
         val unavailable: String? = null,
@@ -214,6 +253,7 @@ class IntegrityDetectionModule(
 
         internal const val CHECK_SIGNATURE = "signature"
         internal const val CHECK_PACKAGE_ID = "package_id"
+        internal const val CHECK_APK_PATH = "apk_path"
         internal const val CHECK_INSTALLER = "installer"
         internal const val CHECK_APK_CHECKSUM = "apk_checksum"
         internal const val CHECK_NATIVE_LIB_CHECKSUM = "native_lib_checksum"
@@ -258,10 +298,11 @@ class IntegrityDetectionModule(
             return listOf(
                 IntegritySignalDefaults.buildSignal(
                     IntegritySignalDefaults.INSTALLER,
-                    mapOf(
-                        "installer" to (hit.installer ?: "null"),
-                        "allowed" to hit.allowed.joinToString(","),
-                    ),
+                    buildMap {
+                        put("installer", hit.installer ?: "null")
+                        put("allowed", hit.allowed.joinToString(","))
+                        hit.initiating?.let { put("initiating", it) }
+                    },
                     tuning,
                 ),
             )
