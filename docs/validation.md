@@ -72,6 +72,18 @@ tables below. Exact weights/confidences live in each module's `*SignalDefaults.k
   `android.integrity.check_unavailable` must not fire on a clean install with correct anchors. Validate the clean baseline on a physical Play install
   launched without a debugger.
 
+### Integrity anchors
+
+Validate integrity with a build installed the way users get it:
+
+1. Install from a Play internal test track. Read `IntegrityAnchors.read(context).toConfigSnippet()`
+   and put the values in `MobShieldConfig`
+   ([detection/android-integrity.md](detection/android-integrity.md#getting-the-values)).
+2. Upload and install that build. Expect no `APP_INTEGRITY` event and no `UNOFFICIAL_STORE` event.
+3. Re-sign the same APK with another key (`apksigner sign --ks other.keystore app.apk`) and install
+   it with `adb install`. Expect `android.integrity.signature`, and `android.store.installer`.
+4. Build with a different `applicationId`. Expect `android.integrity.package_id`.
+
 ### Compromised environment (expected positive detections)
 | Scenario | Expect fired signals | Expect threat |
 |---|---|---|

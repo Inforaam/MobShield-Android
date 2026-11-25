@@ -44,6 +44,27 @@ internal object NativeLibraryLocator {
         return NativeLibrary(abi = abi, path = "$apk!/$entryName") { openEntry(apk, entryName) }
     }
 
+    /** SHA-256 of `lib/<abi>/[libraryName]` for every ABI found in [apkPaths]; the first APK wins per ABI. */
+    fun digestsByAbi(
+        libraryName: String,
+        apkPaths: List<String>,
+    ): Map<String, String> {
+        val digests = sortedMapOf<String, String>()
+        for (apk in apkPaths) {
+            runCatching {
+                ZipFile(apk).use { zip ->
+                    for (entry in zip.entries()) {
+                        val parts = entry.name.split('/')
+                        if (parts.size == 3 && parts[0] == "lib" && parts[2] == libraryName && parts[1] !in digests) {
+                            digests[parts[1]] = zip.getInputStream(entry).use(DigestUtil::sha256HexStream)
+                        }
+                    }
+                }
+            }
+        }
+        return digests
+    }
+
     private fun findInApks(
         libraryName: String,
         apkPaths: List<String>,
